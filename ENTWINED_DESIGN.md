@@ -94,7 +94,7 @@ The chart lives in `tools/element_wheel.py`. Change it there, re-run, and the sc
 | Nature | **Root** | The tough, living core of a plant |
 | Air | **Breeze** | Air you can feel moving |
 | Earth | **Soil** | Living ground, what roots grow in |
-| Lightning | **Lightning** | Clearest as itself for now. Symbolic alternatives under consideration: **Static** (the small, everyday form, like breeze is to wind) or **Thunder** |
+| Lightning | **Lightning** | Kept as itself for now (no symbolic alternative fits yet) |
 
 Order on the wheel: **Wave → Flame → Root → Breeze → Soil → Lightning → (back to Wave)**
 

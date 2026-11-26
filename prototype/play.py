@@ -1,11 +1,14 @@
 """Entwined: a playable battle against Kael, Lord of Ember Peaks.
 
-    python play.py
+    python play.py           # pixel art drawn with coloured text blocks
+    python play.py --sixel   # HD art drawn with real pixels (Sixel), e.g.
+                             # Windows Terminal 1.22 or newer
 
 Arrow keys (or WASD) choose, Enter (or Space) confirms, Esc quits.
 Enter or Down moves the text along (Down matches the flashing arrow).
-Needs a terminal at least 100 wide and 36 tall; if it's smaller, the game
-says how to fix it and starts as soon as the window fits.
+In Sixel mode, + and - make the picture bigger or smaller.
+Text-block mode needs a terminal at least 100 x 36; Sixel mode 100 x 16.
+If the window is smaller, the game says how to fix it and starts once it fits.
 """
 import math
 import os
@@ -74,7 +77,8 @@ class Keys:
     @staticmethod
     def _plain(ch):
         return {"\r": "enter", "\n": "enter", " ": "enter", "\x1b": "quit", "w": "up", "s": "down", "a": "left", "d": "right",
-                "W": "up", "S": "down", "A": "left", "D": "right"}.get(ch)
+                "W": "up", "S": "down", "A": "left", "D": "right",
+                "+": "bigger", "=": "bigger", "-": "smaller", "_": "smaller"}.get(ch)
 
 
 class Game(B.Player):
@@ -89,6 +93,10 @@ class Game(B.Player):
         for k in self.keys.poll():
             if k == "quit":
                 raise B.Stop()
+            if k in ("bigger", "smaller"):
+                if self.sixel:
+                    self.sixel.adjust += 1 if k == "bigger" else -1
+                continue
             self.pending.append(k)
 
     def take(self):
@@ -455,15 +463,30 @@ def main():
         pass
     if os.name == "nt":
         os.system("")
+    view = None
+    out = sys.stdout
+    if "--sixel" in sys.argv:
+        import sixel
+        cols, rows = B.term_size()
+        cell_w, cell_h, supported, measured = sixel.query_terminal(cols, rows)
+        if supported is False:
+            print("Your terminal says it can't show Sixel images.")
+            print("Windows Terminal supports Sixel from version 1.22. Trying anyway in 4 seconds...")
+            print("(Run without --sixel for the text-block version.)")
+            time.sleep(4)
+        view = sixel.SixelView(cell_w, cell_h)
+        B.set_scale(2)                      # HD art
     B.load_assets()
     keys = Keys()
-    out = sys.stdout
     out.write("\x1b[?1049h\x1b[?25l\x1b[2J")
     try:
         first = True
         while True:
             st = B.State()
             g = Game(st, out, keys)
+            if view:
+                g.sixel = view
+                g.need = (B.W, 16)
             g.wait_for_size()        # shows "make the window bigger" until it fits
             run_battle(g, first)
             first = False
@@ -473,7 +496,8 @@ def main():
         keys.close()
         out.write("\x1b[0m\x1b[?25h\x1b[?1049l")
         out.flush()
-    print("Thanks for playing Entwined! Run it again with:  python play.py")
+    again = "python play.py --sixel" if view else "python play.py"
+    print("Thanks for playing Entwined! Run it again with:  " + again)
 
 
 if __name__ == "__main__":

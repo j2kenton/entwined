@@ -22,6 +22,14 @@ FPS = 25
 RNG = random.Random(4)
 
 # where things stand on the field
+S = 1                    # art resolution: 1 = retro, 2 = HD (used by the Sixel mode)
+
+
+def set_scale(scale):
+    global S
+    S = scale
+
+
 ENEMY_HOME = (58, 0)     # top-left of Emberkit's sprite
 PLAYER_HOME = (-3, 15)   # top-left of Ripplefin's sprite
 
@@ -32,7 +40,7 @@ PLAYER_HOME = (-3, 15)   # top-left of Ripplefin's sprite
 def emberkit_sprite(phase):
     """Emberkit, a Fire creature: a fox-kit with a flame tail.
     `phase` (0..1) animates the flames."""
-    s = Canvas(40, 34)
+    s = Canvas(40, 34, scale=S)
     body = (238, 118, 44)
     body_sh = ball_shader(19, 24, 9, 7, body, (255, 172, 92), (176, 66, 28))
     head_sh = ball_shader(17, 13, 10, 8.5, body, (255, 176, 96), (176, 66, 28))
@@ -99,8 +107,8 @@ def silhouette(c, col):
 # Background: the pass into Ember Peaks
 # =========================================================================
 def background():
-    pixel.SCALE = 1
-    cv = Canvas(W, H)
+    pixel.SCALE = S
+    cv = Canvas(W, H, scale=S)
     cv.rect(0, 0, W - 1, 31, vgrad(0, 31, [(38, 14, 40), (120, 40, 52), (236, 124, 70)]))
     r = random.Random(9)
     for _ in range(14):
@@ -194,11 +202,15 @@ def load_assets():
     BG = background()
     EMBER = [emberkit_sprite(i / 6) for i in range(6)]
     EMBER_WHITE = silhouette(EMBER[0], (255, 255, 255))
-    RIPPLE = flipped(ripplefin_sprite())
+    RIPPLE = flipped(ripplefin_sprite(S))
     RIPPLE_WHITE = silhouette(RIPPLE, (255, 255, 255))
 
 
 def paste_clip(cv, spr, ox, oy, clip_y=None):
+    """Paste a sprite at logical (ox, oy), cut off below logical row clip_y."""
+    k = cv.S
+    ox, oy = ox * k, oy * k
+    clip_y = None if clip_y is None else (clip_y + 1) * k - 1
     for y in range(spr.h):
         ty = oy + y
         if clip_y is not None and ty > clip_y:
@@ -237,7 +249,7 @@ def hp_bar(cv, x0, y, width, t):
 
 
 def render(st):
-    cv = Canvas(W, H)
+    cv = Canvas(W, H, scale=S)
     cv.px = [row[:] for row in BG.px]
     bob = 1 if (st.tick // 12) % 2 else 0
 
@@ -284,14 +296,14 @@ def render(st):
 
     # screen shake
     if st.shake:
-        dx = (2 if st.shake % 2 else -2)
+        dx = (2 if st.shake % 2 else -2) * S
         cv.px = [([(8, 6, 10)] * dx + row[:-dx]) if dx > 0 else (row[-dx:] + [(8, 6, 10)] * -dx)
                  for row in cv.px]
     # venetian-blind reveal / fade
     if st.reveal < 1.0:
-        for y in range(H):
-            if (y % 6) / 6 >= st.reveal:
-                cv.px[y] = [(8, 6, 10)] * W
+        for y in range(cv.h):
+            if ((y // S) % 6) / 6 >= st.reveal:
+                cv.px[y] = [(8, 6, 10)] * cv.w
     return cv
 
 
@@ -391,12 +403,12 @@ def term_size():
         return NEED_COLS, NEED_ROWS          # unknown (not a terminal): assume it fits
 
 
-def size_message(cols, rows):
+def size_message(cols, rows, need=(NEED_COLS, NEED_ROWS)):
     """A short, centred 'make the window bigger' screen that fits any size."""
     lines = [
         ("\x1b[1;38;2;255;200;90m", "The window is too small"),
         ("", ""),
-        ("\x1b[38;2;230;230;235m", "Needs at least %d x %d characters." % (NEED_COLS, NEED_ROWS)),
+        ("\x1b[38;2;230;230;235m", "Needs at least %d x %d characters." % need),
         ("\x1b[38;2;230;230;235m", "Yours is %d x %d." % (cols, rows)),
         ("", ""),
         ("\x1b[38;2;170;200;255m", "Make the window bigger,"),
@@ -421,6 +433,9 @@ class Player:
         self.stills = stills      # dict of tick -> filename when saving PNGs
         self.recorder = recorder  # called with (state, canvas) instead of drawing
         self.next_t = time.perf_counter()
+        self.need = (NEED_COLS, NEED_ROWS)
+        self.sixel = None         # a sixel.SixelView to draw real pixels instead
+        self.skipped = 0
 
     def check_keys(self):
         if os.name == "nt":
@@ -435,13 +450,15 @@ class Player:
         shown = None
         while True:
             cols, rows = term_size()
-            if cols >= NEED_COLS and rows >= NEED_ROWS:
+            if cols >= self.need[0] and rows >= self.need[1]:
                 if shown is not None:
                     self.out.write("\x1b[0m\x1b[2J")
                     self.next_t = time.perf_counter()
                 return
             if (cols, rows) != shown:
-                self.out.write("\x1b[0m\x1b[2J\x1b[H" + size_message(cols, rows))
+                self.out.write("\x1b[0m\x1b[2J\x1b[H" + size_message(cols, rows, self.need))
+                if self.sixel:
+                    self.sixel.last_layout = None   # redraw everything once it fits
                 self.out.flush()
                 shown = (cols, rows)
             self.check_keys()
@@ -481,9 +498,21 @@ class Player:
             return
         if self.out.isatty():
             self.wait_for_size()     # returns at once when the window fits
-        frame = "\x1b[H" + cv.to_ansi() + "\n" + "\n".join(text_box(st))
-        self.out.write(frame)
-        self.out.flush()
+        if self.sixel:
+            # Sixel frames are heavy: if we're running late, skip drawing this
+            # one (the game itself never slows down), but never skip too many.
+            late = time.perf_counter() - self.next_t > 0.5 / FPS
+            if late and self.skipped < 3:
+                self.skipped += 1
+            else:
+                self.skipped = 0
+                cols, rows = term_size()
+                self.out.write(self.sixel.frame(cv, text_box(st), cols, rows))
+                self.out.flush()
+        else:
+            frame = "\x1b[H" + cv.to_ansi() + "\n" + "\n".join(text_box(st))
+            self.out.write(frame)
+            self.out.flush()
         self.check_keys()
         self.next_t += 1 / FPS
         delay = self.next_t - time.perf_counter()
