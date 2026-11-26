@@ -1,0 +1,110 @@
+{
+  "wave": {
+    "name": "Marisol", "sex": "f", "title": "sky-sailor", "land": "Tidewell Isles", "folk": "Tidewell",
+    "blurb": "a scatter of bright islands and shallow seas",
+    "about": "Calm under pressure. Trusts the tide to turn.",
+    "look": {"hair": [40, 178, 198], "coat": [40, 60, 138], "scarf": [212, 58, 64], "hat": [36, 46, 104], "hat_style": "tricorn", "hair_style": "long", "skin": [250, 206, 172], "trim": [242, 200, 82]},
+    "challenge": "The Isles are closed to strangers. If you want my waters, earn them.",
+    "join": "The Citadel... I've lost three ships to their raids. I'm coming. You'll want a navigator.",
+    "nemesis": {
+      "name": "Captain Undertow", "first": "Sable",
+      "look": {"hair": [70, 50, 110], "coat": [22, 44, 60], "scarf": [60, 150, 150], "hat": [18, 22, 36], "hat_style": "tricorn", "hair_style": "long", "skin": [226, 196, 180], "trim": [120, 200, 200]},
+      "taunt": "{ally}. Still chasing the horizon? You never could beat me to it.",
+      "beaten": "Fine. Climb. It changes nothing."
+    },
+    "sweetheart": {
+      "name": "Tavi",
+      "look": {"hair": [60, 50, 70], "coat": [230, 200, 70], "scarf": [120, 90, 190], "hat": null, "hat_style": "none", "hair_style": "short", "skin": [214, 160, 120], "trim": [255, 255, 255]}
+    }
+  },
+  "flame": {
+    "name": "Kael", "sex": "m", "title": "blacksmith knight", "land": "Ember Peaks", "folk": "Ember",
+    "blurb": "black slopes under a smoking mountain",
+    "about": "Proud and direct. Never backs down from a challenge.",
+    "look": {"hair": [120, 40, 30], "coat": [156, 44, 34], "scarf": [240, 150, 50], "hat": [70, 70, 80], "hat_style": "band", "hair_style": "short", "skin": [226, 170, 130], "trim": [242, 200, 82]},
+    "challenge": "Nobody crosses into my land without a battle. Nobody.",
+    "join": "...The Citadel? You're going after the Citadel? Then I'm coming with you.",
+    "nemesis": {
+      "name": "The Ash King", "first": "Varek",
+      "look": {"hair": [60, 56, 60], "coat": [44, 40, 46], "scarf": [200, 70, 30], "hat": [200, 150, 60], "hat_style": "crown", "hair_style": "short", "skin": [200, 170, 160], "trim": [230, 90, 40]},
+      "taunt": "{ally}. Still hammering away at being a hero? I know every move you have.",
+      "beaten": "Hmph. Go on, then. It won't matter."
+    },
+    "sweetheart": {
+      "name": "Nerys",
+      "look": {"hair": [30, 60, 120], "coat": [70, 150, 220], "scarf": [240, 240, 250], "hat": null, "hat_style": "none", "hair_style": "long", "skin": [240, 200, 170], "trim": [255, 255, 255]}
+    }
+  },
+  "root": {
+    "name": "Rowan", "sex": "f", "title": "ranger", "land": "Thornwood", "folk": "Thornwood",
+    "blurb": "an old forest where the paths close behind you",
+    "about": "Patient and watchful. Slow to trust, hard to shake.",
+    "look": {"hair": [176, 84, 40], "coat": [50, 110, 60], "scarf": [130, 90, 50], "hat": [40, 90, 50], "hat_style": "hood", "hair_style": "long", "skin": [240, 196, 160], "trim": [200, 220, 120]},
+    "challenge": "You walk loud for someone in my forest. Stand still, and let's see what you're made of.",
+    "join": "The Citadel poisoned half my forest last spring. I'll walk with you.",
+    "nemesis": {
+      "name": "The Blight Witch", "first": "Nettle",
+      "look": {"hair": [150, 170, 90], "coat": [60, 40, 70], "scarf": [110, 140, 60], "hat": [44, 30, 54], "hat_style": "hood", "hair_style": "long", "skin": [214, 210, 190], "trim": [160, 200, 80]},
+      "taunt": "Little {ally}. The forest can't hide you in here.",
+      "beaten": "Go, then. The top of the tower will wither you."
+    },
+    "sweetheart": {
+      "name": "Brann",
+      "look": {"hair": [200, 80, 30], "coat": [190, 60, 40], "scarf": [250, 190, 80], "hat": null, "hat_style": "none", "hair_style": "short", "skin": [230, 180, 140], "trim": [255, 220, 120]}
+    }
+  },
+  "breeze": {
+    "name": "Soren", "sex": "m", "title": "cliff-runner", "land": "Skyreach Spires", "folk": "Skyreach",
+    "blurb": "thin towers of rock above the clouds",
+    "about": "Light on his feet and quick to laugh. Hates standing still.",
+    "look": {"hair": [236, 232, 214], "coat": [120, 180, 200], "scarf": [60, 190, 180], "hat": [240, 240, 245], "hat_style": "band", "hair_style": "short", "skin": [244, 208, 178], "trim": [255, 255, 255]},
+    "challenge": "Careful! It's a long way down. Nobody takes the high road without getting past me.",
+    "join": "Storming the Citadel? That's the best idea I've heard all year. Count me in!",
+    "nemesis": {
+      "name": "The Gale Tyrant", "first": "Corvin",
+      "look": {"hair": [150, 156, 170], "coat": [70, 80, 100], "scarf": [170, 190, 210], "hat": [190, 200, 215], "hat_style": "crown", "hair_style": "short", "skin": [220, 200, 190], "trim": [200, 230, 240]},
+      "taunt": "{ally}! Still running? You always were faster. Never stronger.",
+      "beaten": "Run along, then. See how far it gets you."
+    },
+    "sweetheart": {
+      "name": "Linnea",
+      "look": {"hair": [90, 60, 40], "coat": [80, 150, 80], "scarf": [220, 230, 150], "hat": null, "hat_style": "none", "hair_style": "long", "skin": [236, 190, 150], "trim": [240, 250, 200]}
+    }
+  },
+  "soil": {
+    "name": "Bram", "sex": "m", "title": "stonemason", "land": "Stonehollow", "folk": "Stonehollow",
+    "blurb": "a canyon town cut from red rock",
+    "about": "Slow to move and impossible to push. Says little, means all of it.",
+    "look": {"hair": [40, 34, 34], "coat": [130, 90, 56], "scarf": [226, 210, 180], "hat": [100, 70, 44], "hat_style": "cap", "hair_style": "short", "skin": [200, 150, 110], "trim": [230, 200, 150]},
+    "challenge": "Road's shut. Has been since the raids. If you want it open, you'll have to move me.",
+    "join": "Hm. The Citadel. About time somebody went. I'll come.",
+    "nemesis": {
+      "name": "The Iron Baron", "first": "Dorn",
+      "look": {"hair": [80, 80, 90], "coat": [64, 66, 78], "scarf": [140, 90, 60], "hat": [120, 124, 136], "hat_style": "crown", "hair_style": "short", "skin": [190, 160, 140], "trim": [170, 176, 190]},
+      "taunt": "{ally}. Slow as ever. I'd have opened the gate for you, if you'd asked nicely.",
+      "beaten": "Hm. Pass. You'll find the top less forgiving."
+    },
+    "sweetheart": {
+      "name": "Wren",
+      "look": {"hair": [240, 230, 200], "coat": [150, 210, 215], "scarf": [255, 255, 255], "hat": null, "hat_style": "none", "hair_style": "long", "skin": [246, 214, 190], "trim": [255, 255, 255]}
+    }
+  },
+  "lightning": {
+    "name": "Juno", "sex": "f", "title": "storm-chaser", "land": "Stormcrag Plateau", "folk": "Stormcrag",
+    "blurb": "a high plain where the storms never quite leave",
+    "about": "Restless and fearless. Thinks fast and talks faster.",
+    "look": {"hair": [250, 220, 90], "coat": [100, 70, 160], "scarf": [255, 225, 80], "hat": [60, 50, 80], "hat_style": "band", "hair_style": "long", "skin": [236, 190, 160], "trim": [255, 235, 120]},
+    "challenge": "Ha! You picked a bad day for a walk, stranger. Let's see if you can keep up with the storm.",
+    "join": "The Citadel?! Why didn't you open with that? I'm in!",
+    "nemesis": {
+      "name": "The Thunder Duchess", "first": "Vesper",
+      "look": {"hair": [200, 190, 230], "coat": [50, 36, 84], "scarf": [220, 190, 60], "hat": [230, 200, 80], "hat_style": "crown", "hair_style": "long", "skin": [224, 200, 200], "trim": [255, 230, 100]},
+      "taunt": "{ally}, darling. Still chasing storms? I became one.",
+      "beaten": "Oh, go on up. I do so want to watch."
+    },
+    "sweetheart": {
+      "name": "Garrick",
+      "look": {"hair": [70, 50, 36], "coat": [150, 110, 70], "scarf": [220, 200, 160], "hat": null, "hat_style": "none", "hair_style": "short", "skin": [206, 160, 120], "trim": [240, 220, 180]}
+    }
+  }
+}

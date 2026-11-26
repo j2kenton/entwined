@@ -1,0 +1,10 @@
+{
+  "damage_k": 0.3,
+  "start_level": 5,
+  "growth_per_level": 0.04,
+  "lord_power": [1.2, 1.14, 1.03, 1.03, 0.88],
+  "citadel_first_power": 1.0,
+  "citadel_sixth_power": 1.0,
+  "nemesis_first_power": 1.0,
+  "hybrid_power": 1.3
+}

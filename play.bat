@@ -1,14 +1,14 @@
 @echo off
-rem Play the Entwined prototype. Options are passed on, e.g.  play --sixel
+rem Play Entwined. Options are passed on, e.g.  play --hero kael
 cd /d "%~dp0"
 where py >nul 2>nul
 if %errorlevel%==0 (
-    py -3 prototype\play.py %*
+    py -3 -m game %*
     goto :eof
 )
 where python >nul 2>nul
 if %errorlevel%==0 (
-    python prototype\play.py %*
+    python -m game %*
     goto :eof
 )
 echo Entwined needs Python 3: https://www.python.org/downloads/

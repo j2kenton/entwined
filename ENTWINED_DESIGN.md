@@ -1,6 +1,6 @@
 # Entwined — Game Design Doc (draft)
 
-> **Status:** planning. A working draft, not final.
+> **Status:** the first full version (MVP) is built in `game/`; see section 10. This doc is still a working draft.
 > Names marked *(placeholder)* are stand-ins until we pick real ones.
 > **Platform:** a game that plays in the terminal, with truecolor pixel-art graphics.
 > **Prototypes** (`prototype/`): concept art, a battle clip and a playable battle. They're for getting a feel only and aren't kept in sync with this doc.
@@ -293,7 +293,7 @@ How:
 
 ---
 
-## 10. First full version (MVP) *(planned)*
+## 10. First full version (MVP) *(built)*
 
 The whole story from start to finish, with the minimum in each step:
 
@@ -306,7 +306,7 @@ The whole story from start to finish, with the minimum in each step:
 7. **Outro:** victory, you demand the secret, he flees, your sweetheart comes back to you
 8. **End screen**
 
-### 10.1 Structural decisions to settle first
+### 10.1 Structural decisions
 Everything else (names, stats, text, the chart) is a value we can change any time. These shape how it's built:
 
 | Decision | Recommendation | Why it matters now |
@@ -322,6 +322,41 @@ Everything else (names, stats, text, the chart) is a value we can change any tim
 | **Tech** | Keep Python, with characters, creatures, moves and dialogue in **data files** | Keeps all the "values" editable without touching code |
 | **Where it's built** | **Decided:** a new `game/` folder on `master`. The prototypes stay as they are in `prototype/` | Keeps the experiments available for reference |
 
+### 10.2 What the MVP does, and the calls made while building it
+
+It's in `game/` (`python -m game`). All of these are defaults that can change:
+
+**Creatures (placeholder cast, one per nature).** Each has four moves: an attack of its own nature, a plain attack that never misses, and two others.
+
+| Nature | Creature | Villains' dark version | Its other two moves |
+|---|---|---|---|
+| Wave | Ripplefin | Murkfin | Bubble Guard (guard), Rest (heal) |
+| Flame | Emberkit | Ashkit | Kindle (power up), Smokescreen (lower accuracy) |
+| Root | Bramblehog | Blighthog | Take Root (heal), Thorn Guard (guard) |
+| Breeze | Gustwing | Direwing | Tailwind (power up), Dust Devil (lower accuracy) |
+| Soil | Loamkin | Gravelkin | Harden (guard), Mud Shot (lower accuracy) |
+| Lightning | Nimbleat | Gloombleat | Charge Up (power up), Flash (lower accuracy) |
+
+- **Hybrids** (one per hero): Stormfin, Scaldkit, Charthorn, Thornwing, Dustwhirl, Fulgurlamb. A hybrid first looks like an ordinary dark creature of the nature that beats you. Once you've chosen who faces it, it shifts to whichever of its two forms does best against that creature, and shifts again whenever you send in someone new.
+- **Nemeses got first names** (their old friends wouldn't use the title): Sable (Captain Undertow), Varek (the Ash King), Nettle (the Blight Witch), Corvin (the Gale Tyrant), Dorn (the Iron Baron), Vesper (the Thunder Duchess).
+- **A light version of levelling.** Your creature gains a level for every Lord beaten (a 4% boost each), and your allies keep pace. This was the simplest way to keep later fights fair. Full levelling is still to come.
+- **Losing to a Lord:** try again, or let an ally you've already recruited take the fight (they suggest moves, you decide). If an ally wins it, the Lord's comment is about your company instead.
+- **Lords' comments** pick from eight reasons you won: a narrow escape, a very fast win, winning against a bad match-up, good guarding, relying on plain attacks, fighting through lowered accuracy, a good match-up, or none of those.
+- **Hints at the mystery** come from the second and fourth Lords you recruit.
+- **The Citadel.** On each floor the ally whose nemesis it is fights first. When a creature faints you choose who steps in, and when the hidden sixth creature appears you choose who faces it. The menu shows each creature's health and how its nature fares. Health and limited moves carry over between floors.
+- **Your own creature can step in on lower floors,** but if it has fainted when you reach the top, you can't face your nemesis.
+- **Losing a floor:** retry it, go back down a floor, or start the Citadel again fully rested. These stand in for the checkpoints in section 8.
+- **The final floor:** you fight your nemesis's first creature alone. For the hybrid, anyone can step in.
+- **Pictures:** HD art as real pixels (Sixel) where the terminal supports it, otherwise the same art at retro resolution as coloured text blocks. The game detects which.
+- **Everything editable is in `game/data/`:** the element chart, creatures and moves, heroes (names, looks, lines), all story text with `{placeholders}` per hero, and the balance numbers.
+
+**Balance** (from `python -m game.sim`, a careful player):
+- Lord fights average about 95%, 86%, 76%, 64% and 50% wins from first to last, when fought alone. With the best ally stepping in after a loss, nearly all are winnable.
+- It varies a lot by hero, because the creatures differ. The hardest single match-ups: Bram's Loamkin against Marisol's Ripplefin (about 13% alone) and Soren's Gustwing against Rowan's Bramblehog (about 20%). Those fights more or less need an ally. *(Open: even these out, or keep them as "bring a friend" fights?)*
+- A sensible party clears the Citadel about 80% of the time per attempt, with about three creatures still standing.
+
+**Not in yet** (as planned): catching, items, walking the overworld, field-power puzzles, trainer gifts, saving to disk, more than one creature each.
+
 ---
 
 ## 11. Open questions (none are blockers)
@@ -334,6 +369,8 @@ Everything else (names, stats, text, the chart) is a value we can change any tim
 6. Do field powers tire the creature that uses them?
 7. Weather in battles (needed for Juno's gift)?
 8. The real cast names *(keeping the placeholders for now)*.
+9. Even out the hardest Lord match-ups, or keep them as fights that need an ally? (see 10.2)
+10. In text-block mode the game needs a 100 x 37 window, taller than a default terminal (120 x 30). Fine as a fallback, or worth a compact layout?
 
 ### 11.1 Game name candidates *(themed on the story arc)*
 

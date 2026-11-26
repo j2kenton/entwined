@@ -8,17 +8,19 @@ A classic-style creature-battling adventure that plays entirely in the terminal,
   <img src="prototype/images/citadel_hd.png" width="32%" alt="The Citadel beneath the swirling Rift">
 </p>
 
-Two childhood friends, too alike to stay friends, become rivals for the same sweetheart. Everyone believes a person can only ever bond with one kind of creature, until the villains find a way around that rule. To stop them, you have to cross five lands, win over each land's Lord, and storm the Citadel together.
+You were about to be married. Then your sweetheart vanished, on the very night the Citadel's raiders were seen at the border. You know who leads them: your oldest friend, turned rival.
 
-> **Status: early prototype.** Right now you can play one battle: Ripplefin against Kael, Lord of Ember Peaks. The full game design is in [ENTWINED_DESIGN.md](ENTWINED_DESIGN.md).
+Choose one of six heroes, each bonded to a creature of their own nature. Cross five lands, battle the Lord of each one and win them to your side, then climb the Citadel together. Its masters have found a way to break the oldest rule there is, and one of them grew up beside you.
+
+> **Early version.** You can play the whole story from start to finish, but it's short, and the art and writing are placeholders. There's no saving yet, so it's one sitting.
 
 ## Play it
 
 You need **Python 3** ([download](https://www.python.org/downloads/)). Nothing else needs installing.
 
 ```sh
-git clone <this repo's URL>
-cd <the folder it created>
+git clone https://github.com/j2kenton/entwined.git
+cd entwined
 ```
 
 Then:
@@ -28,39 +30,53 @@ Then:
 | Windows | `play` (or double-click `play.bat`) |
 | Mac / Linux | `./play.sh` |
 
-Or run it directly: `python prototype/play.py`
+Or run it directly: `python -m game`
 
-### HD mode (real pixels)
+### Pictures: HD or retro
 
-```sh
-play --sixel            # Windows
-./play.sh --sixel       # Mac / Linux
-```
+The game picks the best way to draw for your terminal:
 
-This draws the HD art with real pixels using **Sixel** graphics. It needs a terminal that supports Sixel, such as **Windows Terminal 1.22 or newer**, WezTerm or foot. Press **+** and **−** to resize the picture.
+- **HD, with real pixels (Sixel).** Used when the terminal supports Sixel graphics, such as **Windows Terminal 1.22 or newer**, WezTerm or foot. Works in any window of at least **100 × 17** characters, and the picture sizes itself to the window. Press **+** and **−** to resize it.
+- **Retro, with coloured text blocks.** Used everywhere else. Needs a window of at least **100 × 37** characters.
+
+If the window is too small, the game says how to fix it, then starts by itself once it fits. To force a mode, add `--sixel` or `--blocks`. If the game picks the wrong one, `python tools/termcheck.py` shows what your terminal reports.
 
 ### Controls
 
 | Key | Does |
 |---|---|
-| Arrow keys / WASD | Choose a move |
+| Arrow keys / WASD | Choose |
 | Enter / Space | Confirm |
 | Enter / Down | Move the text along |
 | Esc | Quit |
 
-### Window size
+### Shortcuts for trying things out
 
-The normal version needs a terminal at least **100 × 36** characters, and HD mode needs **100 × 16**. If the window is too small, the game tells you how to fix it, then starts by itself once it fits.
+```sh
+play --hero kael                  # skip the opening and play as Kael
+play --hero juno --from citadel   # start at the Citadel, with all five allies
+play --hero rowan --from top      # start at the final floor
+```
 
-## What else is here
+## How it plays
+
+- **Six natures**, each strong against the next: Wave → Flame → Root → Breeze → Soil → Lightning → Wave. The order you cross the lands depends on your hero, from the Lord you're strongest against to the one who's strongest against you.
+- **Beat a Lord and they join you.** If a Lord beats you, try again, or let an ally you've already won over have a go.
+- **The Citadel has no rest.** Health carries from floor to floor. On each floor an ally faces their own nemesis, and you choose who steps in when a creature falls, or when the nemesis brings out something unexpected.
+- **Ally fights:** the ally suggests a move. Press Enter to accept it, or pick another.
+- **Lose a floor** and you can retry it, go back down a floor, or start the Citadel again fully rested.
+
+## What's here
 
 | Path | What it is |
 |---|---|
-| [ENTWINED_DESIGN.md](ENTWINED_DESIGN.md) | The game design: world rules, element wheel, cast, story, and the plan for the first full version |
-| `prototype/play.py` | The playable battle |
-| `prototype/battle.py` | A scripted battle clip: `python prototype/battle.py` (add `--gif` to record it as a GIF) |
-| `prototype/show.py` | The concept art in your terminal: `python prototype/show.py` (add `--hd` for the high-resolution version) |
-| `prototype/images/` | The concept art and the battle clip as image files |
-| `tools/element_wheel.py` | The element chart, plus checks that it still suits the story for every hero |
+| [ENTWINED_DESIGN.md](ENTWINED_DESIGN.md) | The game design: world rules, element wheel, cast, story, and what's planned |
+| `game/` | The game. `python -m game` |
+| `game/data/` | Everything editable without touching code: the element chart, creatures and moves, heroes, all the story text, and the balance numbers |
+| `game/sim.py` | Balance check: `python -m game.sim` simulates the campaign for every hero |
+| `tools/playtest.py` | A robot that plays the whole game for every hero, to catch errors |
+| `tools/element_wheel.py` | Prints the element chart and checks it still suits the story |
+| `tools/termcheck.py` | Shows what your terminal reports (size, Sixel support) |
+| `prototype/` | The earlier experiments: concept art, a battle clip and a one-battle demo |
 
 Everything uses only Python's standard library.

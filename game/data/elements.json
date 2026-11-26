@@ -1,0 +1,45 @@
+{
+  "order": ["wave", "flame", "root", "breeze", "soil", "lightning"],
+  "names": {
+    "wave": "Wave", "flame": "Flame", "root": "Root",
+    "breeze": "Breeze", "soil": "Soil", "lightning": "Lightning"
+  },
+  "pattern": {"1": 2.0, "2": 0.8, "3": 1.0, "4": 1.25, "5": 0.5},
+  "same": 0.8,
+  "links": {
+    "wave>flame": "water puts out fire",
+    "flame>root": "fire burns plants",
+    "root>breeze": "a breeze only spreads seeds and helps plants grow; roots hold firm",
+    "breeze>soil": "wind blows soil away",
+    "soil>lightning": "the ground earths lightning",
+    "lightning>wave": "water conducts the shock"
+  },
+  "exceptions": [
+    {"attacker": "flame", "defender": "soil", "mult": 0.8, "why": "soil smothers flame"},
+    {"attacker": "soil", "defender": "flame", "mult": 1.25, "why": "...so soil hits flame a little harder"},
+    {"attacker": "flame", "defender": "lightning", "mult": 1.0, "why": "no real relationship"},
+    {"attacker": "soil", "defender": "soil", "mult": 1.0, "why": "rock on rock is fine"},
+    {"attacker": "breeze", "defender": "breeze", "mult": 1.0, "why": "wind can't really resist wind"},
+    {"attacker": "lightning", "defender": "lightning", "mult": 0.5, "why": "storms swallow lightning"}
+  ],
+  "noun": {
+    "wave": "water", "flame": "flames", "root": "roots",
+    "breeze": "wind", "soil": "earth", "lightning": "lightning"
+  },
+  "trait": {
+    "wave": "calmer", "flame": "braver", "root": "tougher",
+    "breeze": "quicker", "soil": "steadier", "lightning": "sharper"
+  },
+  "colour": {
+    "wave": [90, 190, 255], "flame": [255, 140, 40], "root": [120, 205, 90],
+    "breeze": [170, 235, 230], "soil": [200, 150, 90], "lightning": [255, 225, 80]
+  },
+  "sparks": {
+    "wave": [[120, 200, 255], [200, 240, 255], [60, 140, 230], [255, 255, 255]],
+    "flame": [[255, 220, 90], [255, 140, 40], [230, 60, 30], [255, 250, 200]],
+    "root": [[120, 205, 90], [60, 150, 60], [200, 240, 130], [150, 100, 60]],
+    "breeze": [[220, 250, 250], [170, 235, 230], [255, 255, 255], [130, 200, 210]],
+    "soil": [[200, 150, 90], [140, 95, 55], [230, 200, 150], [100, 70, 45]],
+    "lightning": [[255, 245, 150], [255, 225, 80], [255, 255, 255], [190, 150, 255]]
+  }
+}

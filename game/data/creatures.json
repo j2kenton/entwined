@@ -1,0 +1,56 @@
+{
+  "moves": {
+    "tidal_burst":  {"name": "TIDAL BURST",  "element": "wave", "kind": "attack", "power": 40, "acc": 0.9, "pp": 6, "anim": "stream"},
+    "splash_fin":   {"name": "SPLASH FIN",   "element": null, "kind": "attack", "power": 30, "acc": 1.0, "pp": 0, "crit": 0.2, "anim": "strike"},
+    "bubble_guard": {"name": "BUBBLE GUARD", "element": "wave", "kind": "guard", "pp": 5, "priority": 1},
+    "rest":         {"name": "REST",         "element": null, "kind": "heal", "pp": 2, "heal": 0.4},
+
+    "flame_dash":   {"name": "FLAME DASH",   "element": "flame", "kind": "attack", "power": 40, "acc": 0.9, "pp": 6, "anim": "dash"},
+    "ember_claw":   {"name": "EMBER CLAW",   "element": null, "kind": "attack", "power": 30, "acc": 1.0, "pp": 0, "crit": 0.2, "anim": "strike"},
+    "kindle":       {"name": "KINDLE",       "element": "flame", "kind": "boost", "pp": 4},
+    "smokescreen":  {"name": "SMOKESCREEN",  "element": "flame", "kind": "hinder", "pp": 4, "tint": [[120, 112, 120], [90, 84, 92], [150, 142, 150]], "what": "Smoke"},
+
+    "vine_lash":    {"name": "VINE LASH",    "element": "root", "kind": "attack", "power": 40, "acc": 0.9, "pp": 6, "anim": "stream"},
+    "headbutt":     {"name": "HEADBUTT",     "element": null, "kind": "attack", "power": 30, "acc": 1.0, "pp": 0, "crit": 0.2, "anim": "strike"},
+    "take_root":    {"name": "TAKE ROOT",    "element": "root", "kind": "heal", "pp": 2, "heal": 0.4},
+    "thorn_guard":  {"name": "THORN GUARD",  "element": "root", "kind": "guard", "pp": 5, "priority": 1},
+
+    "gale_force":   {"name": "GALE FORCE",   "element": "breeze", "kind": "attack", "power": 40, "acc": 0.9, "pp": 6, "anim": "stream"},
+    "peck":         {"name": "PECK",         "element": null, "kind": "attack", "power": 30, "acc": 1.0, "pp": 0, "crit": 0.2, "anim": "strike"},
+    "tailwind":     {"name": "TAILWIND",     "element": "breeze", "kind": "boost", "pp": 4},
+    "dust_devil":   {"name": "DUST DEVIL",   "element": "breeze", "kind": "hinder", "pp": 4, "tint": [[210, 190, 150], [180, 160, 120], [235, 220, 190]], "what": "Dust"},
+
+    "mudslide":     {"name": "MUDSLIDE",     "element": "soil", "kind": "attack", "power": 40, "acc": 0.9, "pp": 6, "anim": "stream"},
+    "dig_claw":     {"name": "DIG CLAW",     "element": null, "kind": "attack", "power": 30, "acc": 1.0, "pp": 0, "crit": 0.2, "anim": "strike"},
+    "harden":       {"name": "HARDEN",       "element": "soil", "kind": "guard", "pp": 5, "priority": 1},
+    "mud_shot":     {"name": "MUD SHOT",     "element": "soil", "kind": "hinder", "pp": 4, "tint": [[120, 85, 50], [90, 62, 38], [150, 110, 70]], "what": "Mud"},
+
+    "fork_bolt":    {"name": "FORK BOLT",    "element": "lightning", "kind": "attack", "power": 40, "acc": 0.9, "pp": 6, "anim": "stream"},
+    "ram":          {"name": "RAM",          "element": null, "kind": "attack", "power": 30, "acc": 1.0, "pp": 0, "crit": 0.2, "anim": "dash"},
+    "charge_up":    {"name": "CHARGE UP",    "element": "lightning", "kind": "boost", "pp": 4},
+    "flash":        {"name": "FLASH",        "element": "lightning", "kind": "hinder", "pp": 4, "tint": [[255, 255, 220], [255, 240, 150], [255, 255, 255]], "what": "The glare"},
+
+    "twin_surge":   {"name": "TWIN SURGE",   "element": "form", "kind": "attack", "power": 40, "acc": 0.9, "pp": 8, "anim": "stream"},
+    "rend":         {"name": "REND",         "element": null, "kind": "attack", "power": 30, "acc": 1.0, "pp": 0, "crit": 0.2, "anim": "dash"},
+    "resonate":     {"name": "RESONATE",     "element": "form", "kind": "boost", "pp": 4},
+    "veil":         {"name": "VEIL",         "element": "form", "kind": "hinder", "pp": 3, "tint": [[150, 90, 190], [100, 60, 140], [200, 150, 230]], "what": "A dark haze"}
+  },
+
+  "species": {
+    "wave":      {"id": "ripplefin",  "name": "RIPPLEFIN",  "shadow": "MURKFIN",    "hp": 52, "atk": 14, "df": 12, "spd": 14, "moves": ["tidal_burst", "splash_fin", "bubble_guard", "rest"]},
+    "flame":     {"id": "emberkit",   "name": "EMBERKIT",   "shadow": "ASHKIT",     "hp": 48, "atk": 16, "df": 11, "spd": 17, "moves": ["flame_dash", "ember_claw", "kindle", "smokescreen"]},
+    "root":      {"id": "bramblehog", "name": "BRAMBLEHOG", "shadow": "BLIGHTHOG",  "hp": 56, "atk": 13, "df": 13, "spd": 9,  "moves": ["vine_lash", "headbutt", "take_root", "thorn_guard"]},
+    "breeze":    {"id": "gustwing",   "name": "GUSTWING",   "shadow": "DIREWING",   "hp": 46, "atk": 15, "df": 11, "spd": 19, "moves": ["gale_force", "peck", "tailwind", "dust_devil"]},
+    "soil":      {"id": "loamkin",    "name": "LOAMKIN",    "shadow": "GRAVELKIN",  "hp": 56, "atk": 13, "df": 14, "spd": 8,  "moves": ["mudslide", "dig_claw", "harden", "mud_shot"]},
+    "lightning": {"id": "nimbleat",   "name": "NIMBLEAT",   "shadow": "GLOOMBLEAT", "hp": 47, "atk": 16, "df": 11, "spd": 16, "moves": ["fork_bolt", "ram", "charge_up", "flash"]}
+  },
+
+  "hybrid": {
+    "moves": ["twin_surge", "rend", "resonate", "veil"],
+    "hp": 60, "atk": 15, "df": 13, "spd": 15,
+    "names": {
+      "wave": "STORMFIN", "flame": "SCALDKIT", "root": "CHARTHORN",
+      "breeze": "THORNWING", "soil": "DUSTWHIRL", "lightning": "FULGURLAMB"
+    }
+  }
+}

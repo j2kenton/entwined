@@ -1,0 +1,395 @@
+{
+  "intro": [
+    [
+      "narr",
+      "Everyone is born with one nature: Wave, Flame, Root, Breeze, Soil or Lightning."
+    ],
+    [
+      "narr",
+      "As you grow, creatures of your own nature come to trust you. Up to five of them. Never more, and never any other kind."
+    ],
+    [
+      "narr",
+      "That's the law of the six lands. Or it was."
+    ],
+    [
+      "narr",
+      "From the Citadel at the heart of the Rift, six outcasts have always raided the lands, and the lands have always held them off."
+    ],
+    [
+      "narr",
+      "Lately the raids are winning. Nobody knows why."
+    ]
+  ],
+  "choose_hero": "Whose story is this?",
+  "hero_intro": [
+    [
+      "narr",
+      "{hero} of {land} was to marry {sweetheart} this spring.",
+      [
+        "hero",
+        "sweetheart"
+      ]
+    ],
+    [
+      "narr",
+      "Then {sweetheart} vanished. The same night, the Citadel's banners were seen on the border.",
+      [
+        "hero"
+      ]
+    ],
+    [
+      "narr",
+      "{hero} knows who leads the {element} raiders: {nem_first}, the one the lands now call {nemesis}. They grew up side by side, too alike to stay friends, and both in love with {sweetheart}.",
+      [
+        "hero",
+        "nemesis"
+      ]
+    ],
+    [
+      "narr",
+      "{sweetheart} never thought much of either of them. {Sw_their} {sw_element} creature beat them both, every time.",
+      [
+        "sweetheart"
+      ]
+    ],
+    [
+      "narr",
+      "{hero} is certain {nem_first} has taken {sw_them}. The road to the Citadel crosses five lands. Each has a Lord, and no Lord lets a stranger pass without a battle.",
+      [
+        "hero"
+      ]
+    ],
+    [
+      "narr",
+      "{hero} sets out, with {creature} at {hero_their} side.",
+      [
+        "hero",
+        "creature"
+      ]
+    ]
+  ],
+  "land_enter": [
+    [
+      "narr",
+      "The road leads into {land}: {blurb}."
+    ]
+  ],
+  "lord_appears": [
+    [
+      "narr",
+      "{lord}, Lord of {land}, steps into the road!"
+    ]
+  ],
+  "lord_wins": [
+    [
+      "lord",
+      "Not today. Come back when you're stronger."
+    ]
+  ],
+  "ally_offers": [
+    [
+      "ally",
+      "Let me have a go. {lord} hasn't seen what I can do."
+    ]
+  ],
+  "win_specific": {
+    "clutch": "I had you on the ropes. How are you still standing?",
+    "fast": "That was over before I'd even warmed up. I've never lost that fast.",
+    "uphill": "My {e_noun} should have swallowed your {p_noun} whole. It didn't. How?",
+    "guard": "Every time I struck, you were already braced for it. You read me perfectly.",
+    "plain": "You hardly leaned on your {p_noun} at all. That was pure skill.",
+    "misses": "Half blind, and you still kept coming.",
+    "advantage": "Your {p_noun} went straight through my {e_noun}. I never stood a chance.",
+    "default": "You and {creature} move like one. I couldn't find a gap."
+  },
+  "win_general": "You {folk} folk are {trait} than I gave you credit for.",
+  "win_by_ally": [
+    [
+      "lord",
+      "Beaten by {ally}, of all people. And {ally_they} follow{ally_s} you?"
+    ],
+    [
+      "lord",
+      "Then there's more to you than I saw."
+    ]
+  ],
+  "tell_quest": [
+    [
+      "narr",
+      "{hero} tells {lord} about {sweetheart}, and the road to the Citadel."
+    ]
+  ],
+  "joined": "{LORD} JOINS YOU!",
+  "level_up": "{creature} grew stronger! It's now level {level}.",
+  "lord_hints": {
+    "1": [
+      "lord",
+      "The raiders hit us hard last month. Their creatures fought like one mind, as if something was holding them together."
+    ],
+    "3": [
+      "lord",
+      "One of their captains had a creature that wasn't of his own nature. I told myself I'd imagined it. Nobody can do that."
+    ]
+  },
+  "citadel_intro": [
+    [
+      "narr",
+      "Six lands. Six natures. One road left."
+    ],
+    [
+      "narr",
+      "The Citadel stands on the Rift itself. Here, the bond between trainer and creature runs stronger than anywhere in the lands."
+    ],
+    [
+      "hero",
+      "Once we're inside, there's no resting. Whatever hurts us on one floor, we carry to the next."
+    ],
+    [
+      "narr",
+      "Each of the six outcasts holds a floor. Each of them grew up beside one of you."
+    ]
+  ],
+  "floor_enter": [
+    [
+      "narr",
+      "Floor {floor}. {nemesis} is waiting."
+    ]
+  ],
+  "ally_claims": [
+    [
+      "ally",
+      "I know every trick {nem_first} has. This one's mine."
+    ],
+    [
+      "ally",
+      "{hero}, call it if you see something I don't."
+    ]
+  ],
+  "ally_out": [
+    [
+      "ally",
+      "My {creature} is in no state to fight. Someone will have to stand in for me."
+    ]
+  ],
+  "first_down": [
+    [
+      "nemesis",
+      "Not bad. But I stopped playing by the old rules a long time ago."
+    ]
+  ],
+  "sixth_reveal_first": [
+    [
+      "narr",
+      "{nemesis} sends out a sixth creature. A {beater} one."
+    ],
+    [
+      "ally",
+      "That's impossible. You're {element}, like me. You can't bond a second nature. Nobody can!"
+    ],
+    [
+      "nemesis",
+      "Five of a kind tear each other apart. A sixth, of a stronger nature, keeps them in line. Did you never wonder why we started winning?"
+    ]
+  ],
+  "sixth_reveal_later": [
+    [
+      "narr",
+      "{nemesis} sends out a sixth creature. {Beater}: the nature that beats {ally}'s."
+    ],
+    [
+      "ally",
+      "Another one. They've all learned it."
+    ]
+  ],
+  "choose_sender": "Who faces {enemy} ({enemy_element})?",
+  "floor_clear": [
+    [
+      "narr",
+      "Floor {floor} is clear. There's no time to rest."
+    ]
+  ],
+  "floor_lost": [
+    [
+      "narr",
+      "The party can't go on. Everyone falls back to the stairs."
+    ]
+  ],
+  "final_enter": [
+    [
+      "narr",
+      "The top of the Citadel. The Rift howls overhead.",
+      []
+    ],
+    [
+      "nemesis",
+      "{hero}. I knew you'd come.",
+      [
+        "hero",
+        "nemesis"
+      ]
+    ],
+    [
+      "hero",
+      "Where is {sweetheart}, {nem_first}?",
+      [
+        "hero",
+        "nemesis"
+      ]
+    ],
+    [
+      "nemesis",
+      "Safe. Watching. Shall we?",
+      [
+        "hero",
+        "nemesis"
+      ]
+    ],
+    [
+      "narr",
+      "This fight is {hero}'s alone.",
+      [
+        "hero",
+        "nemesis"
+      ]
+    ]
+  ],
+  "final_no_creature": [
+    [
+      "nemesis",
+      "You climbed all this way with nothing left to fight me with? Come back when you can stand."
+    ]
+  ],
+  "final_first_down": [
+    [
+      "nemesis",
+      "You've seen the trick by now. A sixth, of the nature that beats yours."
+    ],
+    [
+      "nemesis",
+      "You know how to answer that. Don't you?"
+    ]
+  ],
+  "hybrid_reveal": [
+    [
+      "narr",
+      "{hybrid} ripples. Its whole body shifts."
+    ],
+    [
+      "nemesis",
+      "Did you think it was only {beater}? I didn't just train a second nature, {hero}. I bred the two together."
+    ],
+    [
+      "nemesis",
+      "My strongest {element} creature, and the strongest {beater} creature in the lands. Hers."
+    ],
+    [
+      "hero",
+      "...{sweetheart}'s?"
+    ],
+    [
+      "nemesis",
+      "Whatever you send, it becomes the half that hurts you most."
+    ]
+  ],
+  "final_ally_cheer": [
+    [
+      "ally",
+      "Then we find something that stands up to both halves. Think, {hero}!"
+    ]
+  ],
+  "outro": [
+    [
+      "narr",
+      "{hybrid} falls. For a moment, nobody moves.",
+      [
+        "hero",
+        "nemesis"
+      ]
+    ],
+    [
+      "hero",
+      "It's over, {nem_first}. How did you do it? Tell me the secret.",
+      [
+        "hero",
+        "nemesis"
+      ]
+    ],
+    [
+      "nemesis",
+      "All right. All right! I'll tell you. Just...",
+      [
+        "hero",
+        "nemesis"
+      ]
+    ],
+    [
+      "narr",
+      "{nem_first} bolts for the Rift, and is gone.",
+      [
+        "hero"
+      ]
+    ],
+    [
+      "hero",
+      "No! Now I'll never know.",
+      [
+        "hero"
+      ]
+    ],
+    [
+      "sweetheart",
+      "{hero}.",
+      [
+        "hero",
+        "sweetheart"
+      ]
+    ],
+    [
+      "hero",
+      "{sweetheart}! Did {nem_they} hurt you?",
+      [
+        "hero",
+        "sweetheart"
+      ]
+    ],
+    [
+      "sweetheart",
+      "Nobody took me. I went. {nem_first} had done something no one had ever done, and I wanted to see it.",
+      [
+        "hero",
+        "sweetheart"
+      ]
+    ],
+    [
+      "sweetheart",
+      "And then I watched you cross five lands and climb this tower without it.",
+      [
+        "hero",
+        "sweetheart"
+      ]
+    ],
+    [
+      "sweetheart",
+      "Don't worry about the secret. {Nem_they} told me everything. I'll tell you.",
+      [
+        "hero",
+        "sweetheart"
+      ]
+    ],
+    [
+      "sweetheart",
+      "Let's go home.",
+      [
+        "hero",
+        "sweetheart"
+      ]
+    ]
+  ],
+  "end": {
+    "title": "THE END",
+    "line": "{hero} and {sweetheart} went home to {land}. The five Lords went with them as far as the border.",
+    "stats": "Battles lost along the way: {losses}.   Turns fought: {turns}.",
+    "again": "Thanks for playing Entwined. Press Enter to play again, or Esc to quit."
+  }
+}
