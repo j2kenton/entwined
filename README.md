@@ -2,6 +2,12 @@
 
 A classic-style creature-battling adventure that plays entirely in the terminal, with pixel-art graphics.
 
+<p align="center">
+  <img src="prototype/images/hero_hd.png" width="32%" alt="Marisol, a Wave hero, on the deck of her ship at sunset">
+  <img src="prototype/images/creature_hd.png" width="32%" alt="Ripplefin, a Wave creature, on a rock by the sea">
+  <img src="prototype/images/citadel_hd.png" width="32%" alt="The Citadel beneath the swirling Rift">
+</p>
+
 Two childhood friends, too alike to stay friends, become rivals for the same sweetheart. Everyone believes a person can only ever bond with one kind of creature, until the villains find a way around that rule. To stop them, you have to cross five lands, win over each land's Lord, and storm the Citadel together.
 
 > **Status: early prototype.** Right now you can play one battle: Ripplefin against Kael, Lord of Ember Peaks. The full game design is in [ENTWINED_DESIGN.md](ENTWINED_DESIGN.md).

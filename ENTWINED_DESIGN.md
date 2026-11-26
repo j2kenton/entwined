@@ -311,7 +311,7 @@ Everything else (names, stats, text, the chart) is a value we can change any tim
 
 | Decision | Recommendation | Why it matters now |
 |---|---|---|
-| **Target window size / resolution** | **Open:** you want the HD (2×) look, which needs about 200 columns, but a default window is 120 × 30. See open question 9 | Every screen layout and all art sizes depend on it |
+| **Resolution** | **Decided: HD art drawn with real pixels (Sixel)**, tested and looking great in Windows Terminal. Any window from 100 × 16 works; terminals without Sixel automatically get the text-block version of the same art | Every screen layout and all art sizes depend on it |
 | **Heroes in the MVP** | **Decided:** everything is shared and reusable for any hero, with variants only where a part must match the chosen hero (names, land order, nemesis, sweetheart, a few lines). Full text for one hero first | The changing land order is the heart of the design, and sharing keeps six heroes affordable |
 | **Art** | Placeholder art is fine: one creature per element, darker recolours for villains' creatures, six hybrids, simple portraits | Art is the slowest part; recolours keep the MVP small |
 | **Health carries over between floors** | **Yes** | It's what makes the Citadel strategic, and battle balance depends on it |
@@ -320,6 +320,7 @@ Everything else (names, stats, text, the chart) is a value we can change any tim
 | **Losing** | Retry that fight (works like a checkpoint) | Simplest version of the save design |
 | **Left out of the MVP** | Catching, levelling, items, overworld walking, field-power puzzles, saving to disk | Each can be added later without rebuilding |
 | **Tech** | Keep Python, with characters, creatures, moves and dialogue in **data files** | Keeps all the "values" editable without touching code |
+| **Where it's built** | **Decided:** a new `game/` folder on `master`. The prototypes stay as they are in `prototype/` | Keeps the experiments available for reference |
 
 ---
 
@@ -333,11 +334,6 @@ Everything else (names, stats, text, the chart) is a value we can change any tim
 6. Do field powers tire the creature that uses them?
 7. Weather in battles (needed for Juno's gift)?
 8. The real cast names *(keeping the placeholders for now)*.
-9. **Resolution vs window size.** The HD (2×) look needs about 200 × 60 characters, but a default Windows Terminal is 120 × 30. Options:
-   - **HD in a bigger window:** the game asks the player to go full screen and zoom out once (the "window too small" screen already does this).
-   - **Retro resolution** in a default-size window.
-   - **Sixel graphics:** real image pixels inside the terminal (Windows Terminal 1.22+), HD at any window size, with a fallback for terminals without it. Needs an experiment first.
-   - Whichever is chosen, the window-size check (100 × 36 today) changes to match.
 
 ### 11.1 Game name candidates *(themed on the story arc)*
 
@@ -385,6 +381,8 @@ More variations (round 3):
 - Keep the name **"Lords of the Land"** for now.
 - Use **your variant of the element wheel**, with realism exceptions (2.3).
 - **Element names:** Wave, Flame, Root, Breeze, Soil, Lightning (2.4).
+- **Resolution:** HD art with real pixels (Sixel), with a text-block fallback (10.1).
+- **MVP lives in `game/` on `master`;** the prototypes stay in `prototype/`.
 - **Theoretically winnable, never by breaking the rules:** save points and checkpoints (8).
 - **Trainer gifts, items and field-power puzzles** have first drafts (4.4, 4.5, 6.4).
 - Healing inside the Citadel comes **only from what you bring**: remedies in your satchel. No resting.
