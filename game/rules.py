@@ -1,4 +1,4 @@
-"""Battle rules: the element chart, creatures, moves, damage and the AI.
+"""Battle rules: the element chart, creatures, levels, moves, damage and the AI.
 
 Pure logic with no drawing, so whole campaigns can be simulated for balance.
 All the numbers come from the JSON files in data/.
@@ -20,6 +20,9 @@ HEROES = load("heroes")
 TUNING = load("tuning")
 
 ORDER = ELEMENTS["order"]
+SPECIES = CREATURES["species"]
+ITEMS = CREATURES["items"]
+TEAM_MAX = 5
 _EXC = {(e["attacker"], e["defender"]): e["mult"] for e in ELEMENTS["exceptions"]}
 _PATTERN = {int(k): v for k, v in ELEMENTS["pattern"].items()}
 
@@ -63,7 +66,7 @@ def el_name(element):
 
 
 # =========================================================================
-# Moves and creatures
+# Moves
 # =========================================================================
 class Move:
     def __init__(self, key, d):
@@ -78,6 +81,7 @@ class Move:
         self.priority = d.get("priority", 0)
         self.heal = d.get("heal", 0)
         self.anim = d.get("anim", "strike")
+        self.big = d.get("big", False)
         self.tint = [tuple(c) for c in d.get("tint", [])]
         self.what = d.get("what", "")
 
@@ -85,18 +89,39 @@ class Move:
 MOVES = {k: Move(k, d) for k, d in CREATURES["moves"].items()}
 
 
+# =========================================================================
+# Creatures
+# =========================================================================
+def stat_scale(level):
+    return 1.0 + TUNING["growth_per_level"] * (level - TUNING["start_level"])
+
+
+def xp_to_next(level):
+    return 10 + 5 * (level - TUNING["start_level"])
+
+
+def xp_for(enemy, trainer=False):
+    """Experience for beating a creature."""
+    base = 6 + 2 * max(0, enemy.level - TUNING["start_level"])
+    return int(base * (1.5 if trainer else 1.0))
+
+
 class Mon:
-    def __init__(self, name, element, hp, atk, df, spd, moves, species, variant="normal",
-                 forms=None, power=1.0):
-        self.name, self.element = name, element
-        self.species = species            # which creature's body to draw
+    """One creature. `sid` is its species, which also picks its picture."""
+
+    def __init__(self, sid, level, variant="normal"):
+        sp = SPECIES[sid]
+        self.sid = sid
         self.variant = variant            # "normal", "shadow" or "hybrid"
-        self.forms = forms                # hybrid: its two elements
-        self.shown_forms = 1              # hybrid: how many forms it has revealed
-        self.base = (hp, atk, df, spd)
-        self.moves = [MOVES[k] for k in moves]
-        self.power = power
-        self.level = None
+        self.name = sp["shadow"] if variant == "shadow" else sp["name"]
+        self.element = sp["element"]
+        self.base = (sp["hp"], sp["atk"], sp["df"], sp["spd"])
+        self.learn = sp["learn"]
+        self.forms = None                 # hybrids: their two elements
+        self.shown_forms = 1
+        self.level = level
+        self.xp = 0
+        self.moves = [MOVES[k] for k, lv in self.learn if lv <= level][:4]
         self._apply()
         self.hp = self.max_hp
         self.pp = {m.key: m.max_pp for m in self.moves}
@@ -104,20 +129,17 @@ class Mon:
 
     def _apply(self):
         hp, atk, df, spd = self.base
-        self.max_hp = int(round(hp * self.power))
-        self.atk = atk * self.power
+        scale = stat_scale(self.level)
+        self.max_hp = int(round(hp * scale))
+        self.atk = atk * scale
         self.df, self.spd = df, spd
 
-    def set_power(self, power, keep_ratio=True):
-        ratio = self.hp / self.max_hp
-        self.power = power
-        self._apply()
-        self.hp = max(1, int(round(self.max_hp * ratio))) if keep_ratio else self.max_hp
-
+    # ----- state ----------------------------------------------------------
     def clear_status(self):
         self.acc_stage = 0      # 0, -1, -2
         self.boosted = False
         self.guard = False
+        self.lured = False
 
     def restore(self):
         self.hp = self.max_hp
@@ -145,42 +167,102 @@ class Mon:
     def move_element(self, move):
         return self.element if move.element == "form" else move.element
 
+    # ----- growing --------------------------------------------------------
+    def set_level(self, level):
+        """Jump to a level (keeps the share of health it had)."""
+        ratio = self.ratio
+        self.level = min(level, TUNING["level_cap"])
+        self._apply()
+        self.hp = max(1 if ratio > 0 else 0, int(round(self.max_hp * ratio)))
+        for k, lv in self.learn:
+            if lv <= self.level and len(self.moves) < 4 and MOVES[k] not in self.moves:
+                self.moves.append(MOVES[k])
+                self.pp[k] = MOVES[k].max_pp
+
+    def gain_xp(self, amount):
+        """Returns what happened: ("level", n) and ("move", Move) events."""
+        events = []
+        if self.level >= TUNING["level_cap"]:
+            return events
+        self.xp += amount
+        while self.level < TUNING["level_cap"] and self.xp >= xp_to_next(self.level):
+            self.xp -= xp_to_next(self.level)
+            known = list(self.moves)
+            old_max = self.max_hp
+            self.set_level(self.level + 1)
+            if self.hp > 0:
+                self.hp = min(self.max_hp, self.hp + (self.max_hp - old_max))
+            events.append(("level", self.level))
+            events += [("move", m) for m in self.moves if m not in known]
+        return events
+
     # ----- hybrids --------------------------------------------------------
     def best_form(self, foe_element):
         """The form that does best against a foe: hits hardest, takes least."""
         return max(self.forms, key=lambda f: mult(f, foe_element) / mult(foe_element, f))
 
+    def set_form(self, element):
+        self.element = element
+        self.sid = CREATURES["starter"][element]
+        self.shown_forms = 2
 
-def level_power(level):
-    return 1.0 + TUNING["growth_per_level"] * (level - TUNING["start_level"])
+    # ----- saving ---------------------------------------------------------
+    def to_dict(self):
+        return {"sid": self.sid, "level": self.level, "xp": self.xp, "hp": self.hp, "pp": self.pp}
+
+    @classmethod
+    def from_dict(cls, d):
+        m = cls(d["sid"], d["level"])
+        m.xp = d.get("xp", 0)
+        m.hp = min(d.get("hp", m.max_hp), m.max_hp)
+        for k, v in d.get("pp", {}).items():
+            if k in m.pp:
+                m.pp[k] = v
+        return m
 
 
-def make_mon(element, variant="normal", power=1.0):
-    sp = CREATURES["species"][element]
-    name = sp["shadow"] if variant == "shadow" else sp["name"]
-    return Mon(name, element, sp["hp"], sp["atk"], sp["df"], sp["spd"], sp["moves"],
-               species=element, variant=variant, power=power)
+def make_mon(element, variant="normal", level=None, role="starter"):
+    """A creature of a nature: its starter by default, or its quick / sturdy one."""
+    level = level or TUNING["start_level"]
+    sid = next(s for s in CREATURES["by_element"][element] if SPECIES[s]["role"] == role)
+    return Mon(sid, level, variant)
 
 
-def make_hybrid(hero_element, power=1.0):
+def make_team(element, level, size, variant="normal"):
+    """A trainer's team: starter first (a level higher), then sturdy, then quick."""
+    roles = ["starter", "sturdy", "quick", "starter", "sturdy"][:size]
+    return [make_mon(element, variant, level + (1 if i == 0 else 0), r) for i, r in enumerate(roles)]
+
+
+def make_hybrid(hero_element, level):
     """A nemesis's bred creature: the hero's own element plus the one that beats it.
     It first appears in the form that beats the hero."""
     h = CREATURES["hybrid"]
     beater = beater_of(hero_element)
-    return Mon(h["names"][hero_element], beater, h["hp"], h["atk"], h["df"], h["spd"], h["moves"],
-               species=beater, variant="hybrid", forms=[hero_element, beater], power=power)
+    m = Mon(CREATURES["starter"][beater], level, "hybrid")
+    m.name = h["names"][hero_element]
+    m.base = (h["hp"], h["atk"], h["df"], h["spd"])
+    m.moves = [MOVES[k] for k in h["moves"]]
+    m.forms = [hero_element, beater]
+    m._apply()
+    m.restore()
+    return m
+
+
+def living(team):
+    return [m for m in team if m.alive]
 
 
 # =========================================================================
 # Using a move
 # =========================================================================
-def use_move(user, target, move, rng):
+def use_move(user, target, move, rng, weather=None):
     """Apply a move. Returns a dict describing what happened."""
     if move.max_pp:
         user.pp[move.key] -= 1
     res = {"move": move, "user": user, "target": target, "hit": True, "dmg": 0,
            "mult": 1.0, "crit": False, "boosted": False, "guarded": False,
-           "heal": 0, "no_effect": False, "element": user.move_element(move)}
+           "heal": 0, "no_effect": False, "element": user.move_element(move), "weather": False}
     if move.kind == "attack":
         acc = 1.0 if move.acc >= 1.0 else move.acc * (0.75 ** -user.acc_stage)
         if rng.random() > acc:
@@ -192,6 +274,9 @@ def use_move(user, target, move, rng):
         dmg *= rng.uniform(0.85, 1.0)
         if crit:
             dmg *= 1.5
+        if weather and res["element"] == weather:
+            dmg *= TUNING["weather_boost"]
+            res["weather"] = True
         if user.boosted:
             dmg *= 1.5
             user.boosted = False
@@ -218,6 +303,34 @@ def use_move(user, target, move, rng):
         else:
             target.acc_stage -= 1
     return res
+
+
+def use_item(key, mon):
+    """Use a satchel item on a creature. Returns a message, or None if it would do nothing."""
+    if not mon.alive:
+        return None
+    if key == "remedy":
+        if mon.hp >= mon.max_hp:
+            return None
+        heal = min(int(round(mon.max_hp * 0.4)), mon.max_hp - mon.hp)
+        mon.hp += heal
+        return "%s recovered %d HP." % (mon.name, heal)
+    if key == "tonic":
+        if all(mon.pp[m.key] >= m.max_pp for m in mon.moves):
+            return None
+        mon.pp = {m.key: m.max_pp for m in mon.moves}
+        return "%s is ready to use every move again." % mon.name
+    if key == "charm":
+        if mon.boosted:
+            return None
+        mon.boosted = True
+        return "%s glows. Its next attack will hit harder." % mon.name
+    return None
+
+
+def bond_chance(wild):
+    """How likely a wild creature of your own nature is to accept you."""
+    return min(0.95, 0.2 + 0.65 * (1 - wild.ratio) + (0.3 if wild.lured else 0.0))
 
 
 def expected(user, target, move):

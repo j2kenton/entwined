@@ -1,6 +1,6 @@
 # Entwined — Game Design Doc (draft)
 
-> **Status:** the first full version (MVP) is built in `game/`; see section 10. This doc is still a working draft.
+> **Status:** the full journey is built in `game/` (sections 10.2 and 10.3 say what's in it). This doc is still a working draft.
 > Names marked *(placeholder)* are stand-ins until we pick real ones.
 > **Platform:** a game that plays in the terminal, with truecolor pixel-art graphics.
 > **Prototypes** (`prototype/`): concept art, a battle clip and a playable battle. They're for getting a feel only and aren't kept in sync with this doc.
@@ -355,7 +355,66 @@ It's in `game/` (`python -m game`). All of these are defaults that can change:
 - It varies a lot by hero, because the creatures differ. The hardest single match-ups: Bram's Loamkin against Marisol's Ripplefin (about 13% alone) and Soren's Gustwing against Rowan's Bramblehog (about 20%). Those fights more or less need an ally. *(Open: even these out, or keep them as "bring a friend" fights?)*
 - A sensible party clears the Citadel about 80% of the time per attempt, with about three creatures still standing.
 
-**Not in yet** (as planned): catching, items, walking the overworld, field-power puzzles, trainer gifts, saving to disk, more than one creature each.
+*(Section 10.2 describes the first version. Section 10.3 is what the game does now.)*
+
+### 10.3 The full journey: what was added, and the calls made
+
+**Two ways to play, from the title screen**
+- **The full journey:** home land, five lands, the Citadel. Progress is saved.
+- **A quick taste** (about ten minutes): one Lord, one Citadel floor and the top, one creature each, no walking. It's the first version in miniature, kept for quick feedback.
+
+**Eighteen creatures: three per nature.** Each nature has its starter, a quick one and a sturdy one. Villains use dark versions with their own names.
+
+| Nature | Starter | Quick | Sturdy |
+|---|---|---|---|
+| Wave | Ripplefin | Glidefin | Shellby |
+| Flame | Emberkit | Flaremoth | Coalback |
+| Root | Bramblehog | Twigtail | Stumpkin |
+| Breeze | Gustwing | Whirlet | Driftpuff |
+| Soil | Loamkin | Dusthop | Pebblit |
+| Lightning | Nimbleat | Flashfly | Rumblehorn |
+
+- Quick creatures have a weaker attack that always strikes first. Sturdy ones learn a heavy attack that often misses.
+- **Levels and experience.** Creatures learn their third and fourth moves as they grow. The whole team shares experience from a fight; the one in the fight gets a full share.
+- **Teams of up to five** (the world's own limit). Until there are more kinds of creature, a team can hold two of the same kind.
+
+**Walking the lands**
+- Each land is a map built from a fixed seed: a road west to east, a town with an inn and a market, clearings of long growth where wild creatures roam, a hidden nook, and a border gate.
+- **Home comes first.** Its wild creatures are all your own nature, so it's where you build a team.
+- **In other lands** most wild creatures are that land's nature. They'll fight (good for experience) but never join. About one in four is a stray of your own nature.
+- **Befriending:** in a wild fight you can reach out to a creature of your nature. The weaker it is, the likelier it accepts; a lure helps.
+- **The Lord** appears when you get about three-quarters of the way along the road. If you lose, you can fall back (you return to where you last rested, healed) or let a companion's team try. A beaten Lord opens the border gate. Borders are one-way.
+- **Resting** at the inn heals everyone, brings the wild creatures back, changes the weather and saves. Losing a wild fight sends you back to your last rest, with nothing lost.
+
+**The satchel** holds eight bundles of up to three: remedies (heal 40%), tonics (restore move uses), charms (power up the next attack), lures. Nothing revives a fainted creature except rest. Coins come from Lords and caches; herbs and shards can be sold.
+
+**Gifts** (yours from the start, the others as Lords join)
+
+| Hero | Gift | In the game |
+|---|---|---|
+| Marisol | Navigator | Hidden ways through to a cache in each land become passable |
+| Kael | Forgemaster | Forge two Rift shards into a charm, from your pack |
+| Rowan | Herbalist | Every herb you pick becomes a remedy |
+| Soren | Lookout | A warning just before the Lord appears |
+| Bram | Campbuilder | Once per land, make camp anywhere: a full rest and a save |
+| Juno | Storm-reader | Tells you the day's weather |
+
+- **Weather:** most days one nature is favoured and its attacks hit 15% harder. It applies whether or not Juno is there to tell you.
+
+**The Citadel**
+- The night before, companions' creatures are brought up to your best creature's level.
+- Each nemesis has two dark creatures of their old friend's nature, then the hidden extra of the nature that beats it. *(The story still says five and a sixth; we only fight some of them. Open question below.)*
+- You choose **whose team** steps in. Inside a fight, that trainer's creatures can be swapped as usual.
+- **Blocked ways** between floors: fire, dry vines, a broken bridge, smoke, a pit, a dead machine. Each needs one nature's power. A wrong guess tires that trainer's creatures a little.
+- **Checkpoints:** the journey is saved at the start of every floor. After losing a floor you can retry it or go back down to an earlier one.
+- If the party isn't as strong as expected, the Citadel's creatures are scaled down to match, so nobody arrives unable to win.
+
+**Balance** (from `python -m game.sim`; a careful player with the expected team and no items)
+- Lords: 4, 4, 3, 3, 2 creatures at levels 7, 10, 11, 14, 14. Later Lords have fewer creatures because their nature already has the upper hand.
+- Beating each Lord alone averages roughly 92%, 87%, 73%, 61% and 53%, first to last. It still varies a lot by hero.
+- The Citadel is cleared about 78% of the time per attempt.
+
+**Not in yet:** levelling-up animations or evolutions, more than three kinds of creature per nature, field powers outside the Citadel, walking inside the Citadel, sound.
 
 ---
 
@@ -371,6 +430,9 @@ It's in `game/` (`python -m game`). All of these are defaults that can change:
 8. The real cast names *(keeping the placeholders for now)*.
 9. Even out the hardest Lord match-ups, or keep them as fights that need an ally? (see 10.2)
 10. In text-block mode the game needs a 100 x 37 window, taller than a default terminal (120 x 30). Fine as a fallback, or worth a compact layout?
+11. Nemeses fight with two creatures plus the extra one, though the story says five and a sixth. Fight all five (a much longer Citadel), or change the story's numbers?
+12. A team can hold two of the same kind of creature. Keep that, or add more kinds first?
+13. Lords' levels look low next to yours late in the journey (they rely on their nature's advantage). Does that read oddly in play?
 
 ### 11.1 Game name candidates *(themed on the story arc)*
 

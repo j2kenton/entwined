@@ -1,14 +1,14 @@
-"""The battle scene: two creatures on a backdrop, move menus and animations.
+"""The battle scene: two creatures on a backdrop, menus and animations.
 
 A Battle stays on screen while creatures come and go, so one scene can cover
-a Citadel floor (first creature, then the hidden sixth, with allies stepping in).
+a whole team fight, or a Citadel floor where different trainers step in.
 """
 import math
 import random
 
 from . import rules as R
 from .art import backdrops, creatures
-from .engine.canvas import Canvas, darker, draw_mini, mini_width, mix
+from .engine.canvas import darker, draw_mini, mini_width, mix
 from .engine.ui import DIM, GREY, RED, WHITE, message_rows
 
 W, H = backdrops.W, backdrops.H
@@ -18,6 +18,7 @@ ENEMY_C, PLAYER_C = (76, 15), (25, 36)
 ENEMY_MOUTH, PLAYER_MOUTH = (66, 18), (40, 29)
 PLAIN_SPARKS = [(255, 255, 255), (230, 230, 240), (190, 190, 205), (255, 245, 200)]
 HEAL_SPARKS = [(150, 255, 170), (255, 255, 255), (110, 220, 140)]
+BOND_SPARKS = [(255, 170, 200), (255, 220, 235), (255, 255, 255), (255, 120, 170)]
 
 
 def el_colour(element):
@@ -54,8 +55,8 @@ class Side:
         self.dx = self.dy = 0.0      # offset from its spot, in logical pixels
         self.flash = 0
         self.sink = 0
-        self.hp_shown = 0.0      # what the health bar shows now
-        self.hp_target = 0.0     # what it is moving towards (set when a hit lands)
+        self.hp_shown = 0.0          # what the health bar shows now
+        self.hp_target = 0.0         # what it is moving towards (set when a hit lands)
 
     @property
     def foot(self):
@@ -71,16 +72,16 @@ class Side:
 
     @property
     def dir(self):
-        """Which way this side faces: -1 for the far creature, +1 for the near one."""
         return -1 if self.far else 1
 
 
 class Battle:
-    def __init__(self, ui, backdrop, rng=None):
+    def __init__(self, ui, backdrop, rng=None, weather=None):
         self.ui = ui
         self.S = ui.S
         self.bg = backdrops.backdrop(backdrop, self.S)
         self.rng = rng or random.Random()
+        self.weather = weather               # an element whose attacks hit harder today
         self.fx = random.Random(4)           # for particle scatter only
         self.enemy, self.player = Side(True), Side(False)
         self.parts = []
@@ -89,11 +90,13 @@ class Battle:
         self.banner = None
         self.panels = False
         self.cursor = {}                     # remembered menu position per creature
+        self.after_send = None               # called with a creature when you send it in
+        self.team, self.foes, self.wild, self.bag, self.hero_element = [], [], False, None, None
         self.reset_stats()
 
     def reset_stats(self):
         self.stats = dict(turns=0, elem_hits=0, plain_hits=0, guards=0, misses=0,
-                          min_ratio=1.0, finisher=None)
+                          min_ratio=1.0, finisher=None, fainted=0)
 
     # =====================================================================
     # Drawing
@@ -102,10 +105,13 @@ class Battle:
         """(Re)build a side's sprites from its creature's current look."""
         mon = side.mon
         other = None
+        variant = mon.variant
         if mon.variant == "hybrid":
-            other = [f for f in mon.forms if f != mon.element][0] if mon.shown_forms > 1 else None
-        variant = mon.variant if (mon.variant != "hybrid" or mon.shown_forms > 1) else "shadow"
-        frames = creatures.frames(mon.species, variant, other, self.S, 34 if side.far else 44)
+            if mon.shown_forms > 1:
+                other = [f for f in mon.forms if f != mon.element][0]
+            else:
+                variant = "shadow"           # until it shows its second nature
+        frames = creatures.frames(mon.sid, variant, other, self.S, 34 if side.far else 44)
         side.frames = frames if side.far else [f.flipped() for f in frames]
         side.white = side.frames[0].silhouette((255, 255, 255))
 
@@ -127,10 +133,9 @@ class Battle:
         self.parts = alive
         for side in (self.enemy, self.player):
             if side.mon:
-                target = side.hp_target
-                side.hp_shown += (target - side.hp_shown) * 0.14
-                if abs(target - side.hp_shown) < 0.004:
-                    side.hp_shown = target
+                side.hp_shown += (side.hp_target - side.hp_shown) * 0.14
+                if abs(side.hp_target - side.hp_shown) < 0.004:
+                    side.hp_shown = side.hp_target
             side.flash = max(0, side.flash - 1)
         self.shake = max(0, self.shake - 1)
         if self.ui.headless and tick % 40:
@@ -199,7 +204,8 @@ class Battle:
             cv.rect(46, 4, 49, 7, col)
             cv.set(47, 5, mix(col, (255, 255, 255), 0.6))
             draw_mini(cv, 5, 9, "HP", (255, 200, 80))
-            bar(13, 10, 36, e.hp_shown)
+            bar(13, 10, 24, e.hp_shown)
+            draw_mini(cv, 40, 9, "L%d" % e.mon.level, (200, 196, 210))
         if p.on or (p.mon and p.sink):
             col = el_colour(p.mon.element)
             panel(48, 43, 98, 58, col)
@@ -208,12 +214,15 @@ class Battle:
             draw_mini(cv, 57, 45, p.mon.name, (230, 244, 255), shadow=(20, 30, 50))
             draw_mini(cv, 51, 50, "HP", (255, 200, 80))
             bar(59, 51, 36, p.hp_shown)
+            draw_mini(cv, 51, 54, "L%d" % p.mon.level, (200, 206, 220))
             txt = "%d/%d" % (round(p.hp_shown * p.mon.max_hp), p.mon.max_hp)
             draw_mini(cv, 96 - mini_width(txt), 54, txt, (220, 230, 240))
 
     # =====================================================================
     # Small helpers
     # =====================================================================
+    rows = ()        # what the text box shows while an animation plays
+
     def land(self, side):
         """The moment a hit (or a heal) lands: let the health bar catch up."""
         side.hp_target = side.mon.ratio
@@ -223,8 +232,6 @@ class Battle:
             if fn:
                 fn(i)
             self.ui.frame(self.draw(), self.rows)
-
-    rows = ()        # what the text box shows while an animation plays
 
     def say(self, text, speaker=None, wait=False, hold=14):
         self.ui.say(self.draw, text, speaker=speaker, wait=wait, hold=hold)
@@ -277,9 +284,13 @@ class Battle:
         self.burst((26, 40), sparks(mon.element), 24)
         self.panels = True
         self.wait(10)
+        if self.after_send:
+            self.after_send(mon)
 
     def recall_player(self, text=None):
         p = self.player
+        if not p.on:
+            return
         if text:
             self.say(text, hold=0)
         p.flash = 8
@@ -304,9 +315,7 @@ class Battle:
                 self.burst(ENEMY_C, both, 8, speed=2.2)
             e.flash = 4
             self.ui.frame(self.draw(), self.rows)
-        mon.element = new_element
-        mon.species = new_element
-        mon.shown_forms = 2
+        mon.set_form(new_element)
         self.set_look(e)
         e.flash = 10
         self.shake = 6
@@ -395,7 +404,7 @@ class Battle:
                                                fx.choice([1.0, 1.3]), fx.choice(cols)))
         self.wait(26, ring)
 
-    def anim_rise(self, side, cols, flash=False):
+    def anim_rise(self, side, cols, flash=False, frames=26):
         fx = self.fx
         cx, cy = side.centre
 
@@ -406,7 +415,7 @@ class Battle:
                                            int(fx.uniform(10, 18)), fx.choice([0.5, 1.0]), fx.choice(cols)))
             if flash and i == 8:
                 side.flash = 6
-        self.wait(26, rise)
+        self.wait(frames, rise)
 
     def anim_cloud(self, att, tgt, cols):
         fx = self.fx
@@ -422,17 +431,19 @@ class Battle:
         self.wait(30, puff)
 
     # =====================================================================
-    # Turns
+    # Choosing what to do
     # =====================================================================
     def describe(self, mon, move, foe):
         el = mon.move_element(move)
         left = "" if not move.max_pp else "  %d left." % mon.pp[move.key]
         if move.kind == "attack":
+            first = " Strikes first." if move.priority > 0 else ""
             if el is None:
-                return "Plain attack, power %d. Never misses, and often lands a critical hit." % move.power
+                return "Plain attack, power %d. Never misses.%s" % (move.power, first)
             word = R.effect_word(R.mult(el, foe.element))
-            return "%s attack, power %d. %s against %s (%s).%s" % (
-                R.el_name(el), move.power, word.capitalize(), foe.name, R.el_name(foe.element), left)
+            miss = " Often misses." if move.acc < 0.8 else ""
+            return "%s attack, power %d. %s against %s.%s%s%s" % (
+                R.el_name(el), move.power, word.capitalize(), foe.name, first, miss, left)
         if move.kind == "guard":
             return "Goes first. Halves the damage taken this turn.%s" % left
         if move.kind == "heal":
@@ -441,37 +452,149 @@ class Battle:
             return "Powers up: its next attack hits half again as hard.%s" % left
         return "Lowers the foe's accuracy, so its attacks miss more often.%s" % left
 
-    def choose_move(self, controller=None):
-        """controller: None when it's your own creature; otherwise the ally
-        (name, colour) who suggests a move and waits for your say."""
+    def choose_action(self, controller=None):
+        """Returns ("move", Move), ("switch", Mon), ("item", key), ("reach",) or ("run",)."""
         p, e = self.player.mon, self.enemy.mon
-        options = []
-        for m in p.moves:
-            el = p.move_element(m)
-            ok = p.can_use(m)
-            label = R.el_name(el) if el else "Plain"
-            lcol = el_colour(el) if el else GREY
-            uses = ("%d/%d" % (p.pp[m.key], m.max_pp)) if m.max_pp else ""
-            options.append([(WHITE if ok else DIM, m.name.ljust(14)),
-                            (lcol if ok else DIM, label.ljust(10)), (GREY if ok else DIM, uses.ljust(6))])
-        start = self.cursor.get(id(p), 0)
-        if controller:
-            pick = R.choose_ai(p, e, self.rng, careful=True)
-            start = p.moves.index(pick)
-            head = [(controller[1], "  %s: " % controller[0]),
-                    (WHITE, "I think I'll go with %s. What do you think?" % pick.name)]
-        else:
-            head = [(GREY, "  What will "), (el_colour(p.element), p.name), (GREY, " do?")]
-            if p.acc_stage < 0:
-                head.append((RED, "     Its accuracy is down %d%%." % round((1 - 0.75 ** -p.acc_stage) * 100)))
-        sel = self.ui.menu(
-            self.draw, head, options, cols=2, start=start,
-            desc=lambda i: [(DIM if not p.can_use(p.moves[i]) else GREY, "  " + self.describe(p, p.moves[i], e))],
-            blocked=lambda i: None if p.can_use(p.moves[i]) else "%s has no uses left!" % p.moves[i].name,
-            tag=("move", p, e))
-        self.cursor[id(p)] = sel
-        return p.moves[sel]
+        while True:
+            cells, acts = [], []
+            for m in p.moves:
+                el = p.move_element(m)
+                ok = p.can_use(m)
+                uses = ("%d/%d" % (p.pp[m.key], m.max_pp)) if m.max_pp else ""
+                cells.append([(WHITE if ok else DIM, m.name.ljust(14)),
+                              (el_colour(el) if (el and ok) else (GREY if ok else DIM), (R.el_name(el) if el else "Plain").ljust(10)),
+                              (GREY if ok else DIM, uses.ljust(6))])
+                acts.append(("move", m))
+            rows = [cells[i:i + 2] for i in range(0, len(cells), 2)]
+            extra, extra_acts = [], []
+            if len(R.living(self.team)) > 1:
+                extra.append([(WHITE, "TEAM")])
+                extra_acts.append(("team",))
+            if self.bag is not None and any(self.bag.get(k, 0) for k in ("remedy", "tonic", "charm", "lure")):
+                extra.append([(WHITE, "SATCHEL")])
+                extra_acts.append(("satchel",))
+            if self.wild:
+                extra.append([(WHITE if e.element == self.hero_element else DIM, "REACH OUT")])
+                extra_acts.append(("reach",))
+                extra.append([(WHITE, "RUN")])
+                extra_acts.append(("run",))
+            if extra:
+                rows.append(extra)
+            n_move_rows = len(rows) - (1 if extra else 0)
 
+            def act_at(r, c):
+                return acts[r * 2 + c] if r < n_move_rows else extra_acts[c]
+
+            def desc(r, c):
+                a = act_at(r, c)
+                if a[0] == "move":
+                    return [(GREY if p.can_use(a[1]) else DIM, "  " + self.describe(p, a[1], e))]
+                text = {"team": "Swap in another creature. It uses your turn.",
+                        "satchel": "Use something from your satchel. It uses your turn.",
+                        "run": "Slip away from this fight.",
+                        "reach": ("Offer your hand. The weaker it is, the more likely it is to trust you."
+                                  if e.element == self.hero_element else
+                                  "Only %s creatures will ever trust you." % R.el_name(self.hero_element))}[a[0]]
+                return [(GREY, "  " + text)]
+
+            def blocked(r, c):
+                a = act_at(r, c)
+                if a[0] == "move" and not p.can_use(a[1]):
+                    return "%s has no uses left!" % a[1].name
+                if a[0] == "reach":
+                    if e.element != self.hero_element:
+                        return "It turns away. Only %s creatures will ever trust you." % R.el_name(self.hero_element)
+                    if len(self.team) >= R.TEAM_MAX:
+                        return "You can only keep %d creatures. Any more and they'd turn on each other." % R.TEAM_MAX
+                return None
+
+            start = self.cursor.get(id(p), (0, 0))
+            if controller:
+                pick = R.choose_ai(p, e, self.rng, careful=True)
+                i = p.moves.index(pick)
+                start = (i // 2, i % 2)
+                head = [(controller[1], "  %s: " % controller[0]),
+                        (WHITE, "I think I'll go with %s. What do you think?" % pick.name)]
+            else:
+                head = [(GREY, "  What will "), (el_colour(p.element), p.name), (GREY, " do?")]
+                if p.acc_stage < 0:
+                    head.append((RED, "     Its accuracy is down %d%%." % round((1 - 0.75 ** -p.acc_stage) * 100)))
+            r, c = self.ui.grid_menu(self.draw, head, rows, desc=desc, start=start, blocked=blocked,
+                                     tag=("action", self, act_at, [len(row) for row in rows]))
+            self.cursor[id(p)] = (r, c)
+            a = act_at(r, c)
+            if a[0] == "team":
+                mon = self.choose_teammate(forced=False)
+                if mon:
+                    return ("switch", mon)
+            elif a[0] == "satchel":
+                key = self.choose_item()
+                if key:
+                    return ("item", key)
+            else:
+                return a
+
+    def team_cells(self, m):
+        ok = m.alive
+        return [(WHITE if ok else DIM, m.name.ljust(11)), (GREY if ok else DIM, ("L%d" % m.level).ljust(5)),
+                ((120, 220, 130) if ok else DIM, ("%d/%d" % (m.hp, m.max_hp) if ok else "fainted").ljust(9))]
+
+    def choose_teammate(self, forced):
+        """Pick a creature from your team. Returns it, or None for "back"."""
+        team = self.team
+        e = self.enemy.mon
+        opts = [self.team_cells(m) for m in team]
+        if not forced:
+            opts.append([(GREY, "Back")])
+
+        def blocked(i):
+            if i >= len(team):
+                return None
+            if not team[i].alive:
+                return "%s has fainted." % team[i].name
+            if team[i] is self.player.mon and self.player.on:
+                return "%s is already out there." % team[i].name
+            return None
+
+        def desc(i):
+            if i >= len(team):
+                return [(GREY, "  Go back.")]
+            m = team[i]
+            return [(GREY, "  %s.  Knows: %s" % (R.el_name(m.element), ", ".join(mv.name.title() for mv in m.moves)))]
+        head = [(GREY, "  Who goes in against "), (el_colour(e.element), e.name), (GREY, "?")]
+        i = self.ui.menu(self.draw, head, opts, cols=2, desc=desc, blocked=blocked,
+                         tag=("teammate", team, self, forced))
+        return team[i] if i < len(team) else None
+
+    def choose_item(self):
+        bag = self.bag
+        keys = [k for k in ("remedy", "tonic", "charm", "lure") if bag.get(k, 0)]
+        p, e = self.player.mon, self.enemy.mon
+        opts = [[(WHITE, R.ITEMS[k]["name"].ljust(10)), (GREY, "x%d" % bag[k])] for k in keys] + [[(GREY, "Back")]]
+
+        def blocked(i):
+            if i >= len(keys):
+                return None
+            k = keys[i]
+            if k == "lure":
+                if not self.wild or e.element != self.hero_element:
+                    return "A lure only tempts a wild creature of your own nature."
+                return "It has already caught the scent." if e.lured else None
+            if k == "remedy" and p.hp >= p.max_hp:
+                return "%s is already at full health." % p.name
+            if k == "tonic" and all(p.pp[m.key] >= m.max_pp for m in p.moves):
+                return "%s's moves are all fresh." % p.name
+            if k == "charm" and p.boosted:
+                return "%s is already powered up." % p.name
+            return None
+        i = self.ui.menu(self.draw, [(GREY, "  Your satchel")], opts, cols=2, blocked=blocked,
+                         desc=lambda i: [(GREY, "  " + (R.ITEMS[keys[i]]["text"] if i < len(keys) else "Go back."))],
+                         tag=("item", keys, self))
+        return keys[i] if i < len(keys) else None
+
+    # =====================================================================
+    # Turns
+    # =====================================================================
     def act(self, res):
         mv, user, target = res["move"], res["user"], res["target"]
         mine = user is self.player.mon
@@ -480,16 +603,18 @@ class Battle:
         cols = sparks(res["element"])
         self.say("%s used %s!" % (user.name, mv.name), hold=4)
         if mv.kind == "attack":
-            anim = {"stream": self.anim_stream, "dash": self.anim_dash, "strike": self.anim_strike}[mv.anim]
             if mv.anim == "stream":
-                anim(att, tgt, res["hit"], cols, big=res["crit"])
+                self.anim_stream(att, tgt, res["hit"], cols, big=res["crit"] or mv.big)
+            elif mv.anim == "dash":
+                self.anim_dash(att, tgt, res["hit"], cols)
             else:
-                anim(att, tgt, res["hit"], cols)
+                self.anim_strike(att, tgt, res["hit"], cols)
             if not res["hit"]:
                 if mine:
                     self.stats["misses"] += 1
                 self.say("But it missed!")
                 return
+            self.land(tgt)
             self.wait(16)
             if res["boosted"]:
                 self.say("The power-up lands!", hold=10)
@@ -526,23 +651,96 @@ class Battle:
             self.say("%s's accuracy can't fall any lower!" % target.name if res["no_effect"]
                      else "%s gets in %s's eyes! Its accuracy fell!" % (mv.what or "It", target.name))
 
-    def fight(self, controller=None):
-        """Trade turns until one creature faints. Returns "win" or "lose"."""
-        p, e = self.player.mon, self.enemy.mon
+    def give_xp(self, beaten):
+        """Share experience for a beaten creature among your team."""
+        gain = R.xp_for(beaten, trainer=not self.wild)
+        for m in R.living(self.team):
+            share = gain if m is self.player.mon else gain // 2
+            for kind, what in m.gain_xp(share):
+                if kind == "level":
+                    if m is self.player.mon:
+                        self.land(self.player)
+                        self.burst(PLAYER_C, PLAIN_SPARKS, 20)
+                    self.say("%s grew to level %d!" % (m.name, what), hold=12)
+                else:
+                    self.say("%s learned %s!" % (m.name, what.name), hold=14)
+
+    def fight(self, team, foes, controller=None, foe_owner=None, wild=False, bag=None,
+              hero_element=None, xp=False):
+        """Fight `foes` with `team` until one side has nobody left.
+
+        controller   None for your own team; an ally's (NAME, colour) when
+                     they fight and you advise
+        foe_owner    the other trainer's name (None for a wild creature)
+        Returns "win", "lose", "ran" or "bonded".
+        """
+        self.team, self.foes, self.wild, self.bag = team, foes, wild, bag
+        self.hero_element = hero_element
+        go = "Go, %s!" if controller is None else controller[0].title() + " sends in %s!"
+        if not (self.enemy.on and self.enemy.mon in foes and self.enemy.mon.alive):
+            nxt = R.living(foes)[0]
+            self.send_enemy(nxt, ("A wild %s appears!" % nxt.name) if wild
+                            else "%s sends out %s!" % (foe_owner, nxt.name))
+        if not (self.player.on and self.player.mon in team and self.player.mon.alive):
+            if self.player.on:
+                self.recall_player("%s, come back!" % self.player.mon.name)
+            first = R.living(team)[0]
+            self.send_player(first, go % first.name)
         while True:
+            p, e = self.player.mon, self.enemy.mon
             self.stats["turns"] += 1
-            pm = self.choose_move(controller)
+            action = self.choose_action(controller)
             em = R.choose_ai(e, p, self.rng)
-            for user, mv, target in R.turn_order(p, pm, e, em):
+            order = [(e, em, p)]
+            if action[0] == "run":
+                self.say("You slip away.", hold=10)
+                return "ran"
+            if action[0] == "move":
+                order = R.turn_order(p, action[1], e, em)
+            elif action[0] == "switch":
+                self.recall_player("%s, come back!" % p.name)
+                self.send_player(action[1], go % action[1].name)
+                p, e = self.player.mon, self.enemy.mon
+                order = [(e, em, p)]
+            elif action[0] == "item":
+                key = action[1]
+                self.bag[key] -= 1
+                if key == "lure":
+                    e.lured = True
+                    self.anim_cloud(self.player, self.enemy, BOND_SPARKS)
+                    self.say("%s sniffs the air and edges closer." % e.name)
+                else:
+                    msg = R.use_item(key, p)
+                    self.anim_rise(self.player, sparks(p.element) if key == "charm" else HEAL_SPARKS, flash=key == "charm")
+                    self.land(self.player)
+                    self.say(msg or "Nothing happened.")
+            elif action[0] == "reach":
+                self.say("You hold out a hand to %s..." % e.name, hold=10)
+                self.wait(10)
+                if self.rng.random() < R.bond_chance(e):
+                    self.anim_rise(self.enemy, BOND_SPARKS, flash=True, frames=34)
+                    self.say("%s nuzzles your palm. It trusts you!" % e.name, wait=True)
+                    return "bonded"
+                self.say("%s shies away." % e.name)
+            for user, mv, target in order:
                 if user.alive and target.alive:
-                    self.act(R.use_move(user, target, mv, self.rng))
+                    self.act(R.use_move(user, target, mv, self.rng, self.weather))
                     self.stats["min_ratio"] = min(self.stats["min_ratio"], p.ratio)
             p.guard = e.guard = False
             if not e.alive:
                 self.faint(self.enemy)
                 self.say("%s can't battle any more!" % e.name)
-                return "win"
+                if xp:
+                    self.give_xp(e)
+                left = R.living(foes)
+                if not left:
+                    return "win"
+                self.send_enemy(left[0], "%s sends out %s!" % (foe_owner, left[0].name))
             if not p.alive:
+                self.stats["fainted"] += 1
                 self.faint(self.player)
                 self.say("%s can't battle any more!" % p.name)
-                return "lose"
+                if not R.living(team):
+                    return "lose"
+                nxt = self.choose_teammate(forced=True)
+                self.send_player(nxt, go % nxt.name)

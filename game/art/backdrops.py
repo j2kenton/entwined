@@ -303,6 +303,62 @@ def title(cv, S):
     return None, None
 
 
+def blocked(answer, S):
+    """The Citadel hall with something barring the way. `answer` is the nature
+    whose power clears it (so a wall of fire is the "wave" picture)."""
+    key = ("blocked", answer, S)
+    if key in _cache:
+        return _cache[key]
+    cv = backdrop("hall", S, platforms=False).copy()
+    r = rng(77)
+    if answer == "wave":                                   # a wall of fire
+        for x in range(-2, W + 4, 5):
+            h = r.uniform(26, 44)
+            for col, k in (((226, 64, 32), 1.0), ((255, 140, 40), 0.72), ((255, 226, 100), 0.42)):
+                cv.polygon([(x - 4 * k, 58), (x - 2 * k, 58 - h * k * 0.6), (x + r.uniform(-1, 1), 58 - h * k),
+                            (x + 2 * k, 58 - h * k * 0.6), (x + 4 * k, 58)], col)
+        cv.rect(0, 57, W - 1, H - 1, (40, 20, 20))
+    elif answer == "flame":                                # dry thorned vines over a door
+        cv.rect(34, 8, 66, 52, (30, 22, 40))
+        cv.rect(36, 10, 64, 52, (52, 40, 62))
+        for _ in range(16):
+            x0, x1 = r.uniform(26, 50), r.uniform(50, 74)
+            y0, y1 = r.uniform(6, 54), r.uniform(6, 54)
+            cv.thick_line(x0, y0, x1, y1, 1.1, (120, 104, 56))
+            for t in (0.25, 0.5, 0.75):
+                px, py = x0 + (x1 - x0) * t, y0 + (y1 - y0) * t
+                cv.line(px, py, px + 2, py - 2, (176, 156, 90))
+    elif answer == "root":                                 # a gap with old roots
+        cv.polygon([(22, 36), (78, 36), (96, 60), (4, 60)], (6, 4, 12))
+        cv.polygon([(26, 38), (74, 38), (88, 60), (12, 60)], (14, 8, 24))
+        for x, sx in ((24, 1), (30, 1), (36, 1), (76, -1), (70, -1), (64, -1)):
+            cv.thick_line(x, 36, x + sx * r.uniform(3, 8), 36 + r.uniform(8, 16), 0.8, (130, 124, 116))
+    elif answer == "breeze":                               # choking smoke
+        for _ in range(46):
+            x, y, rr = r.uniform(0, W), r.uniform(4, 56), r.uniform(5, 11)
+            cv.ellipse(x, y, rr, rr * 0.6, r.choice([(84, 80, 92), (110, 106, 118), (64, 60, 72)]))
+    elif answer == "soil":                                 # a pit and loose rubble
+        cv.ellipse(50, 47, 30, 9, (6, 4, 12))
+        cv.ellipse(50, 48, 26, 7, (14, 8, 24))
+        for _ in range(22):
+            x, y, rr = r.uniform(6, 30), r.uniform(46, 58), r.uniform(1.5, 3.5)
+            cv.ellipse(x, y, rr, rr * 0.8, ball_shader(x, y, rr, rr * 0.8, (120, 108, 112), (166, 154, 156), (76, 68, 76)))
+    else:                                                  # an iron door and a dead machine
+        cv.rect(32, 6, 68, 52, lambda x, y: (96, 100, 112) if x < 50 else (78, 82, 94))
+        cv.rect(32, 6, 68, 7, (140, 144, 156))
+        cv.rect(49, 6, 50, 52, (40, 42, 52))
+        for y in (12, 24, 36, 48):
+            for x in (35, 46, 53, 65):
+                cv.set(x, y, (170, 174, 186))
+        for k in range(7):                                 # copper coils
+            cv.ellipse(80, 20 + k * 4, 5, 1.6, (190, 110, 60))
+            cv.ellipse(80, 19.6 + k * 4, 3.4, 0.8, (240, 170, 100))
+        cv.rect(77, 46, 83, 54, (70, 72, 84))
+        cv.line(74, 32, 68, 30, (190, 110, 60))
+    _cache[key] = cv
+    return cv
+
+
 PAINTERS = {"wave": wave, "flame": flame, "root": root, "breeze": breeze, "soil": soil,
             "lightning": lightning, "hall": hall, "rooftop": rooftop, "title": title}
 _cache = {}

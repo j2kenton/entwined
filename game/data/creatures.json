@@ -1,56 +1,1056 @@
 {
-  "moves": {
-    "tidal_burst":  {"name": "TIDAL BURST",  "element": "wave", "kind": "attack", "power": 40, "acc": 0.9, "pp": 6, "anim": "stream"},
-    "splash_fin":   {"name": "SPLASH FIN",   "element": null, "kind": "attack", "power": 30, "acc": 1.0, "pp": 0, "crit": 0.2, "anim": "strike"},
-    "bubble_guard": {"name": "BUBBLE GUARD", "element": "wave", "kind": "guard", "pp": 5, "priority": 1},
-    "rest":         {"name": "REST",         "element": null, "kind": "heal", "pp": 2, "heal": 0.4},
-
-    "flame_dash":   {"name": "FLAME DASH",   "element": "flame", "kind": "attack", "power": 40, "acc": 0.9, "pp": 6, "anim": "dash"},
-    "ember_claw":   {"name": "EMBER CLAW",   "element": null, "kind": "attack", "power": 30, "acc": 1.0, "pp": 0, "crit": 0.2, "anim": "strike"},
-    "kindle":       {"name": "KINDLE",       "element": "flame", "kind": "boost", "pp": 4},
-    "smokescreen":  {"name": "SMOKESCREEN",  "element": "flame", "kind": "hinder", "pp": 4, "tint": [[120, 112, 120], [90, 84, 92], [150, 142, 150]], "what": "Smoke"},
-
-    "vine_lash":    {"name": "VINE LASH",    "element": "root", "kind": "attack", "power": 40, "acc": 0.9, "pp": 6, "anim": "stream"},
-    "headbutt":     {"name": "HEADBUTT",     "element": null, "kind": "attack", "power": 30, "acc": 1.0, "pp": 0, "crit": 0.2, "anim": "strike"},
-    "take_root":    {"name": "TAKE ROOT",    "element": "root", "kind": "heal", "pp": 2, "heal": 0.4},
-    "thorn_guard":  {"name": "THORN GUARD",  "element": "root", "kind": "guard", "pp": 5, "priority": 1},
-
-    "gale_force":   {"name": "GALE FORCE",   "element": "breeze", "kind": "attack", "power": 40, "acc": 0.9, "pp": 6, "anim": "stream"},
-    "peck":         {"name": "PECK",         "element": null, "kind": "attack", "power": 30, "acc": 1.0, "pp": 0, "crit": 0.2, "anim": "strike"},
-    "tailwind":     {"name": "TAILWIND",     "element": "breeze", "kind": "boost", "pp": 4},
-    "dust_devil":   {"name": "DUST DEVIL",   "element": "breeze", "kind": "hinder", "pp": 4, "tint": [[210, 190, 150], [180, 160, 120], [235, 220, 190]], "what": "Dust"},
-
-    "mudslide":     {"name": "MUDSLIDE",     "element": "soil", "kind": "attack", "power": 40, "acc": 0.9, "pp": 6, "anim": "stream"},
-    "dig_claw":     {"name": "DIG CLAW",     "element": null, "kind": "attack", "power": 30, "acc": 1.0, "pp": 0, "crit": 0.2, "anim": "strike"},
-    "harden":       {"name": "HARDEN",       "element": "soil", "kind": "guard", "pp": 5, "priority": 1},
-    "mud_shot":     {"name": "MUD SHOT",     "element": "soil", "kind": "hinder", "pp": 4, "tint": [[120, 85, 50], [90, 62, 38], [150, 110, 70]], "what": "Mud"},
-
-    "fork_bolt":    {"name": "FORK BOLT",    "element": "lightning", "kind": "attack", "power": 40, "acc": 0.9, "pp": 6, "anim": "stream"},
-    "ram":          {"name": "RAM",          "element": null, "kind": "attack", "power": 30, "acc": 1.0, "pp": 0, "crit": 0.2, "anim": "dash"},
-    "charge_up":    {"name": "CHARGE UP",    "element": "lightning", "kind": "boost", "pp": 4},
-    "flash":        {"name": "FLASH",        "element": "lightning", "kind": "hinder", "pp": 4, "tint": [[255, 255, 220], [255, 240, 150], [255, 255, 255]], "what": "The glare"},
-
-    "twin_surge":   {"name": "TWIN SURGE",   "element": "form", "kind": "attack", "power": 40, "acc": 0.9, "pp": 8, "anim": "stream"},
-    "rend":         {"name": "REND",         "element": null, "kind": "attack", "power": 30, "acc": 1.0, "pp": 0, "crit": 0.2, "anim": "dash"},
-    "resonate":     {"name": "RESONATE",     "element": "form", "kind": "boost", "pp": 4},
-    "veil":         {"name": "VEIL",         "element": "form", "kind": "hinder", "pp": 3, "tint": [[150, 90, 190], [100, 60, 140], [200, 150, 230]], "what": "A dark haze"}
+ "moves": {
+  "tidal_burst": {
+   "name": "TIDAL BURST",
+   "element": "wave",
+   "kind": "attack",
+   "power": 40,
+   "acc": 0.9,
+   "pp": 6,
+   "anim": "stream"
   },
-
-  "species": {
-    "wave":      {"id": "ripplefin",  "name": "RIPPLEFIN",  "shadow": "MURKFIN",    "hp": 52, "atk": 14, "df": 12, "spd": 14, "moves": ["tidal_burst", "splash_fin", "bubble_guard", "rest"]},
-    "flame":     {"id": "emberkit",   "name": "EMBERKIT",   "shadow": "ASHKIT",     "hp": 48, "atk": 16, "df": 11, "spd": 17, "moves": ["flame_dash", "ember_claw", "kindle", "smokescreen"]},
-    "root":      {"id": "bramblehog", "name": "BRAMBLEHOG", "shadow": "BLIGHTHOG",  "hp": 56, "atk": 13, "df": 13, "spd": 9,  "moves": ["vine_lash", "headbutt", "take_root", "thorn_guard"]},
-    "breeze":    {"id": "gustwing",   "name": "GUSTWING",   "shadow": "DIREWING",   "hp": 46, "atk": 15, "df": 11, "spd": 19, "moves": ["gale_force", "peck", "tailwind", "dust_devil"]},
-    "soil":      {"id": "loamkin",    "name": "LOAMKIN",    "shadow": "GRAVELKIN",  "hp": 56, "atk": 13, "df": 14, "spd": 8,  "moves": ["mudslide", "dig_claw", "harden", "mud_shot"]},
-    "lightning": {"id": "nimbleat",   "name": "NIMBLEAT",   "shadow": "GLOOMBLEAT", "hp": 47, "atk": 16, "df": 11, "spd": 16, "moves": ["fork_bolt", "ram", "charge_up", "flash"]}
+  "splash_fin": {
+   "name": "SPLASH FIN",
+   "element": null,
+   "kind": "attack",
+   "power": 30,
+   "acc": 1.0,
+   "pp": 0,
+   "crit": 0.2,
+   "anim": "strike"
   },
-
-  "hybrid": {
-    "moves": ["twin_surge", "rend", "resonate", "veil"],
-    "hp": 60, "atk": 15, "df": 13, "spd": 15,
-    "names": {
-      "wave": "STORMFIN", "flame": "SCALDKIT", "root": "CHARTHORN",
-      "breeze": "THORNWING", "soil": "DUSTWHIRL", "lightning": "FULGURLAMB"
-    }
+  "bubble_guard": {
+   "name": "BUBBLE GUARD",
+   "element": "wave",
+   "kind": "guard",
+   "pp": 5,
+   "priority": 1
+  },
+  "rest": {
+   "name": "REST",
+   "element": null,
+   "kind": "heal",
+   "pp": 2,
+   "heal": 0.4
+  },
+  "flame_dash": {
+   "name": "FLAME DASH",
+   "element": "flame",
+   "kind": "attack",
+   "power": 40,
+   "acc": 0.9,
+   "pp": 6,
+   "anim": "dash"
+  },
+  "ember_claw": {
+   "name": "EMBER CLAW",
+   "element": null,
+   "kind": "attack",
+   "power": 30,
+   "acc": 1.0,
+   "pp": 0,
+   "crit": 0.2,
+   "anim": "strike"
+  },
+  "kindle": {
+   "name": "KINDLE",
+   "element": "flame",
+   "kind": "boost",
+   "pp": 4
+  },
+  "smokescreen": {
+   "name": "SMOKESCREEN",
+   "element": "flame",
+   "kind": "hinder",
+   "pp": 4,
+   "tint": [
+    [
+     120,
+     112,
+     120
+    ],
+    [
+     90,
+     84,
+     92
+    ],
+    [
+     150,
+     142,
+     150
+    ]
+   ],
+   "what": "Smoke"
+  },
+  "vine_lash": {
+   "name": "VINE LASH",
+   "element": "root",
+   "kind": "attack",
+   "power": 40,
+   "acc": 0.9,
+   "pp": 6,
+   "anim": "stream"
+  },
+  "headbutt": {
+   "name": "HEADBUTT",
+   "element": null,
+   "kind": "attack",
+   "power": 30,
+   "acc": 1.0,
+   "pp": 0,
+   "crit": 0.2,
+   "anim": "strike"
+  },
+  "take_root": {
+   "name": "TAKE ROOT",
+   "element": "root",
+   "kind": "heal",
+   "pp": 2,
+   "heal": 0.4
+  },
+  "thorn_guard": {
+   "name": "THORN GUARD",
+   "element": "root",
+   "kind": "guard",
+   "pp": 5,
+   "priority": 1
+  },
+  "gale_force": {
+   "name": "GALE FORCE",
+   "element": "breeze",
+   "kind": "attack",
+   "power": 40,
+   "acc": 0.9,
+   "pp": 6,
+   "anim": "stream"
+  },
+  "peck": {
+   "name": "PECK",
+   "element": null,
+   "kind": "attack",
+   "power": 30,
+   "acc": 1.0,
+   "pp": 0,
+   "crit": 0.2,
+   "anim": "strike"
+  },
+  "tailwind": {
+   "name": "TAILWIND",
+   "element": "breeze",
+   "kind": "boost",
+   "pp": 4
+  },
+  "dust_devil": {
+   "name": "DUST DEVIL",
+   "element": "breeze",
+   "kind": "hinder",
+   "pp": 4,
+   "tint": [
+    [
+     210,
+     190,
+     150
+    ],
+    [
+     180,
+     160,
+     120
+    ],
+    [
+     235,
+     220,
+     190
+    ]
+   ],
+   "what": "Dust"
+  },
+  "mudslide": {
+   "name": "MUDSLIDE",
+   "element": "soil",
+   "kind": "attack",
+   "power": 40,
+   "acc": 0.9,
+   "pp": 6,
+   "anim": "stream"
+  },
+  "dig_claw": {
+   "name": "DIG CLAW",
+   "element": null,
+   "kind": "attack",
+   "power": 30,
+   "acc": 1.0,
+   "pp": 0,
+   "crit": 0.2,
+   "anim": "strike"
+  },
+  "harden": {
+   "name": "HARDEN",
+   "element": "soil",
+   "kind": "guard",
+   "pp": 5,
+   "priority": 1
+  },
+  "mud_shot": {
+   "name": "MUD SHOT",
+   "element": "soil",
+   "kind": "hinder",
+   "pp": 4,
+   "tint": [
+    [
+     120,
+     85,
+     50
+    ],
+    [
+     90,
+     62,
+     38
+    ],
+    [
+     150,
+     110,
+     70
+    ]
+   ],
+   "what": "Mud"
+  },
+  "fork_bolt": {
+   "name": "FORK BOLT",
+   "element": "lightning",
+   "kind": "attack",
+   "power": 40,
+   "acc": 0.9,
+   "pp": 6,
+   "anim": "stream"
+  },
+  "ram": {
+   "name": "RAM",
+   "element": null,
+   "kind": "attack",
+   "power": 30,
+   "acc": 1.0,
+   "pp": 0,
+   "crit": 0.2,
+   "anim": "dash"
+  },
+  "charge_up": {
+   "name": "CHARGE UP",
+   "element": "lightning",
+   "kind": "boost",
+   "pp": 4
+  },
+  "flash": {
+   "name": "FLASH",
+   "element": "lightning",
+   "kind": "hinder",
+   "pp": 4,
+   "tint": [
+    [
+     255,
+     255,
+     220
+    ],
+    [
+     255,
+     240,
+     150
+    ],
+    [
+     255,
+     255,
+     255
+    ]
+   ],
+   "what": "The glare"
+  },
+  "twin_surge": {
+   "name": "TWIN SURGE",
+   "element": "form",
+   "kind": "attack",
+   "power": 40,
+   "acc": 0.9,
+   "pp": 8,
+   "anim": "stream"
+  },
+  "rend": {
+   "name": "REND",
+   "element": null,
+   "kind": "attack",
+   "power": 30,
+   "acc": 1.0,
+   "pp": 0,
+   "crit": 0.2,
+   "anim": "dash"
+  },
+  "resonate": {
+   "name": "RESONATE",
+   "element": "form",
+   "kind": "boost",
+   "pp": 4
+  },
+  "veil": {
+   "name": "VEIL",
+   "element": "form",
+   "kind": "hinder",
+   "pp": 3,
+   "tint": [
+    [
+     150,
+     90,
+     190
+    ],
+    [
+     100,
+     60,
+     140
+    ],
+    [
+     200,
+     150,
+     230
+    ]
+   ],
+   "what": "A dark haze"
+  },
+  "quick_wave": {
+   "name": "RIPTIDE",
+   "element": "wave",
+   "kind": "attack",
+   "power": 28,
+   "acc": 1.0,
+   "pp": 8,
+   "priority": 1,
+   "anim": "dash"
+  },
+  "heavy_wave": {
+   "name": "BREAKER",
+   "element": "wave",
+   "kind": "attack",
+   "power": 58,
+   "acc": 0.75,
+   "pp": 3,
+   "anim": "stream",
+   "big": true
+  },
+  "quick_flame": {
+   "name": "FLICKER",
+   "element": "flame",
+   "kind": "attack",
+   "power": 28,
+   "acc": 1.0,
+   "pp": 8,
+   "priority": 1,
+   "anim": "dash"
+  },
+  "heavy_flame": {
+   "name": "ERUPTION",
+   "element": "flame",
+   "kind": "attack",
+   "power": 58,
+   "acc": 0.75,
+   "pp": 3,
+   "anim": "stream",
+   "big": true
+  },
+  "quick_root": {
+   "name": "SEED SHOT",
+   "element": "root",
+   "kind": "attack",
+   "power": 28,
+   "acc": 1.0,
+   "pp": 8,
+   "priority": 1,
+   "anim": "dash"
+  },
+  "heavy_root": {
+   "name": "TIMBER",
+   "element": "root",
+   "kind": "attack",
+   "power": 58,
+   "acc": 0.75,
+   "pp": 3,
+   "anim": "stream",
+   "big": true
+  },
+  "quick_breeze": {
+   "name": "QUICK GUST",
+   "element": "breeze",
+   "kind": "attack",
+   "power": 28,
+   "acc": 1.0,
+   "pp": 8,
+   "priority": 1,
+   "anim": "dash"
+  },
+  "heavy_breeze": {
+   "name": "CYCLONE",
+   "element": "breeze",
+   "kind": "attack",
+   "power": 58,
+   "acc": 0.75,
+   "pp": 3,
+   "anim": "stream",
+   "big": true
+  },
+  "quick_soil": {
+   "name": "SAND FLICK",
+   "element": "soil",
+   "kind": "attack",
+   "power": 28,
+   "acc": 1.0,
+   "pp": 8,
+   "priority": 1,
+   "anim": "dash"
+  },
+  "heavy_soil": {
+   "name": "ROCKFALL",
+   "element": "soil",
+   "kind": "attack",
+   "power": 58,
+   "acc": 0.75,
+   "pp": 3,
+   "anim": "stream",
+   "big": true
+  },
+  "quick_lightning": {
+   "name": "QUICK ZAP",
+   "element": "lightning",
+   "kind": "attack",
+   "power": 28,
+   "acc": 1.0,
+   "pp": 8,
+   "priority": 1,
+   "anim": "dash"
+  },
+  "heavy_lightning": {
+   "name": "THUNDERCLAP",
+   "element": "lightning",
+   "kind": "attack",
+   "power": 58,
+   "acc": 0.75,
+   "pp": 3,
+   "anim": "stream",
+   "big": true
+  },
+  "dart": {
+   "name": "DART",
+   "element": null,
+   "kind": "attack",
+   "power": 26,
+   "acc": 1.0,
+   "pp": 0,
+   "crit": 0.3,
+   "anim": "strike"
+  },
+  "slam": {
+   "name": "SLAM",
+   "element": null,
+   "kind": "attack",
+   "power": 34,
+   "acc": 1.0,
+   "pp": 0,
+   "crit": 0.1,
+   "anim": "dash"
   }
+ },
+ "species": {
+  "ripplefin": {
+   "name": "RIPPLEFIN",
+   "shadow": "MURKFIN",
+   "element": "wave",
+   "role": "starter",
+   "hp": 52,
+   "atk": 14,
+   "df": 12,
+   "spd": 14,
+   "learn": [
+    [
+     "tidal_burst",
+     1
+    ],
+    [
+     "splash_fin",
+     1
+    ],
+    [
+     "bubble_guard",
+     6
+    ],
+    [
+     "rest",
+     8
+    ]
+   ]
+  },
+  "emberkit": {
+   "name": "EMBERKIT",
+   "shadow": "ASHKIT",
+   "element": "flame",
+   "role": "starter",
+   "hp": 48,
+   "atk": 16,
+   "df": 11,
+   "spd": 17,
+   "learn": [
+    [
+     "flame_dash",
+     1
+    ],
+    [
+     "ember_claw",
+     1
+    ],
+    [
+     "kindle",
+     6
+    ],
+    [
+     "smokescreen",
+     8
+    ]
+   ]
+  },
+  "bramblehog": {
+   "name": "BRAMBLEHOG",
+   "shadow": "BLIGHTHOG",
+   "element": "root",
+   "role": "starter",
+   "hp": 56,
+   "atk": 13,
+   "df": 13,
+   "spd": 9,
+   "learn": [
+    [
+     "vine_lash",
+     1
+    ],
+    [
+     "headbutt",
+     1
+    ],
+    [
+     "take_root",
+     6
+    ],
+    [
+     "thorn_guard",
+     8
+    ]
+   ]
+  },
+  "gustwing": {
+   "name": "GUSTWING",
+   "shadow": "DIREWING",
+   "element": "breeze",
+   "role": "starter",
+   "hp": 46,
+   "atk": 15,
+   "df": 11,
+   "spd": 19,
+   "learn": [
+    [
+     "gale_force",
+     1
+    ],
+    [
+     "peck",
+     1
+    ],
+    [
+     "tailwind",
+     6
+    ],
+    [
+     "dust_devil",
+     8
+    ]
+   ]
+  },
+  "loamkin": {
+   "name": "LOAMKIN",
+   "shadow": "GRAVELKIN",
+   "element": "soil",
+   "role": "starter",
+   "hp": 56,
+   "atk": 13,
+   "df": 14,
+   "spd": 8,
+   "learn": [
+    [
+     "mudslide",
+     1
+    ],
+    [
+     "dig_claw",
+     1
+    ],
+    [
+     "harden",
+     6
+    ],
+    [
+     "mud_shot",
+     8
+    ]
+   ]
+  },
+  "nimbleat": {
+   "name": "NIMBLEAT",
+   "shadow": "GLOOMBLEAT",
+   "element": "lightning",
+   "role": "starter",
+   "hp": 47,
+   "atk": 16,
+   "df": 11,
+   "spd": 16,
+   "learn": [
+    [
+     "fork_bolt",
+     1
+    ],
+    [
+     "ram",
+     1
+    ],
+    [
+     "charge_up",
+     6
+    ],
+    [
+     "flash",
+     8
+    ]
+   ]
+  },
+  "glidefin": {
+   "name": "GLIDEFIN",
+   "shadow": "DUSKRAY",
+   "element": "wave",
+   "role": "quick",
+   "hp": 42,
+   "atk": 15,
+   "df": 10,
+   "spd": 22,
+   "learn": [
+    [
+     "quick_wave",
+     1
+    ],
+    [
+     "dart",
+     1
+    ],
+    [
+     "rest",
+     7
+    ],
+    [
+     "tidal_burst",
+     10
+    ]
+   ]
+  },
+  "shellby": {
+   "name": "SHELLBY",
+   "shadow": "GRIMSHELL",
+   "element": "wave",
+   "role": "sturdy",
+   "hp": 62,
+   "atk": 13,
+   "df": 15,
+   "spd": 6,
+   "learn": [
+    [
+     "slam",
+     1
+    ],
+    [
+     "tidal_burst",
+     1
+    ],
+    [
+     "bubble_guard",
+     7
+    ],
+    [
+     "heavy_wave",
+     10
+    ]
+   ]
+  },
+  "flaremoth": {
+   "name": "FLAREMOTH",
+   "shadow": "SOOTMOTH",
+   "element": "flame",
+   "role": "quick",
+   "hp": 42,
+   "atk": 15,
+   "df": 10,
+   "spd": 22,
+   "learn": [
+    [
+     "quick_flame",
+     1
+    ],
+    [
+     "dart",
+     1
+    ],
+    [
+     "smokescreen",
+     7
+    ],
+    [
+     "flame_dash",
+     10
+    ]
+   ]
+  },
+  "coalback": {
+   "name": "COALBACK",
+   "shadow": "SLAGBACK",
+   "element": "flame",
+   "role": "sturdy",
+   "hp": 62,
+   "atk": 13,
+   "df": 15,
+   "spd": 6,
+   "learn": [
+    [
+     "slam",
+     1
+    ],
+    [
+     "flame_dash",
+     1
+    ],
+    [
+     "kindle",
+     7
+    ],
+    [
+     "heavy_flame",
+     10
+    ]
+   ]
+  },
+  "twigtail": {
+   "name": "TWIGTAIL",
+   "shadow": "ROTTAIL",
+   "element": "root",
+   "role": "quick",
+   "hp": 42,
+   "atk": 15,
+   "df": 10,
+   "spd": 22,
+   "learn": [
+    [
+     "quick_root",
+     1
+    ],
+    [
+     "dart",
+     1
+    ],
+    [
+     "thorn_guard",
+     7
+    ],
+    [
+     "vine_lash",
+     10
+    ]
+   ]
+  },
+  "stumpkin": {
+   "name": "STUMPKIN",
+   "shadow": "DEADWOOD",
+   "element": "root",
+   "role": "sturdy",
+   "hp": 62,
+   "atk": 13,
+   "df": 15,
+   "spd": 6,
+   "learn": [
+    [
+     "slam",
+     1
+    ],
+    [
+     "vine_lash",
+     1
+    ],
+    [
+     "take_root",
+     7
+    ],
+    [
+     "heavy_root",
+     10
+    ]
+   ]
+  },
+  "whirlet": {
+   "name": "WHIRLET",
+   "shadow": "HOWLET",
+   "element": "breeze",
+   "role": "quick",
+   "hp": 42,
+   "atk": 15,
+   "df": 10,
+   "spd": 22,
+   "learn": [
+    [
+     "quick_breeze",
+     1
+    ],
+    [
+     "dart",
+     1
+    ],
+    [
+     "tailwind",
+     7
+    ],
+    [
+     "gale_force",
+     10
+    ]
+   ]
+  },
+  "driftpuff": {
+   "name": "DRIFTPUFF",
+   "shadow": "CHOKEPUFF",
+   "element": "breeze",
+   "role": "sturdy",
+   "hp": 62,
+   "atk": 13,
+   "df": 15,
+   "spd": 6,
+   "learn": [
+    [
+     "slam",
+     1
+    ],
+    [
+     "gale_force",
+     1
+    ],
+    [
+     "dust_devil",
+     7
+    ],
+    [
+     "heavy_breeze",
+     10
+    ]
+   ]
+  },
+  "dusthop": {
+   "name": "DUSTHOP",
+   "shadow": "GRITFANG",
+   "element": "soil",
+   "role": "quick",
+   "hp": 42,
+   "atk": 15,
+   "df": 10,
+   "spd": 22,
+   "learn": [
+    [
+     "quick_soil",
+     1
+    ],
+    [
+     "dart",
+     1
+    ],
+    [
+     "mud_shot",
+     7
+    ],
+    [
+     "mudslide",
+     10
+    ]
+   ]
+  },
+  "pebblit": {
+   "name": "PEBBLIT",
+   "shadow": "SHARDLIT",
+   "element": "soil",
+   "role": "sturdy",
+   "hp": 62,
+   "atk": 13,
+   "df": 15,
+   "spd": 6,
+   "learn": [
+    [
+     "slam",
+     1
+    ],
+    [
+     "mudslide",
+     1
+    ],
+    [
+     "harden",
+     7
+    ],
+    [
+     "heavy_soil",
+     10
+    ]
+   ]
+  },
+  "flashfly": {
+   "name": "FLASHFLY",
+   "shadow": "BLIGHTFLY",
+   "element": "lightning",
+   "role": "quick",
+   "hp": 42,
+   "atk": 15,
+   "df": 10,
+   "spd": 22,
+   "learn": [
+    [
+     "quick_lightning",
+     1
+    ],
+    [
+     "dart",
+     1
+    ],
+    [
+     "flash",
+     7
+    ],
+    [
+     "fork_bolt",
+     10
+    ]
+   ]
+  },
+  "rumblehorn": {
+   "name": "RUMBLEHORN",
+   "shadow": "DOOMHORN",
+   "element": "lightning",
+   "role": "sturdy",
+   "hp": 62,
+   "atk": 13,
+   "df": 15,
+   "spd": 6,
+   "learn": [
+    [
+     "slam",
+     1
+    ],
+    [
+     "fork_bolt",
+     1
+    ],
+    [
+     "charge_up",
+     7
+    ],
+    [
+     "heavy_lightning",
+     10
+    ]
+   ]
+  }
+ },
+ "hybrid": {
+  "moves": [
+   "twin_surge",
+   "rend",
+   "resonate",
+   "veil"
+  ],
+  "hp": 60,
+  "atk": 15,
+  "df": 13,
+  "spd": 15,
+  "names": {
+   "wave": "STORMFIN",
+   "flame": "SCALDKIT",
+   "root": "CHARTHORN",
+   "breeze": "THORNWING",
+   "soil": "DUSTWHIRL",
+   "lightning": "FULGURLAMB"
+  }
+ },
+ "starter": {
+  "wave": "ripplefin",
+  "flame": "emberkit",
+  "root": "bramblehog",
+  "breeze": "gustwing",
+  "soil": "loamkin",
+  "lightning": "nimbleat"
+ },
+ "by_element": {
+  "wave": [
+   "ripplefin",
+   "glidefin",
+   "shellby"
+  ],
+  "flame": [
+   "emberkit",
+   "flaremoth",
+   "coalback"
+  ],
+  "root": [
+   "bramblehog",
+   "twigtail",
+   "stumpkin"
+  ],
+  "breeze": [
+   "gustwing",
+   "whirlet",
+   "driftpuff"
+  ],
+  "soil": [
+   "loamkin",
+   "dusthop",
+   "pebblit"
+  ],
+  "lightning": [
+   "nimbleat",
+   "flashfly",
+   "rumblehorn"
+  ]
+ },
+ "items": {
+  "remedy": {
+   "name": "Remedy",
+   "price": 12,
+   "text": "Restores 40% of a creature's health. It can't wake one that has fainted."
+  },
+  "tonic": {
+   "name": "Tonic",
+   "price": 14,
+   "text": "Restores every use of a creature's moves."
+  },
+  "charm": {
+   "name": "Charm",
+   "price": 10,
+   "text": "In battle: your creature's next attack hits half again as hard."
+  },
+  "lure": {
+   "name": "Lure",
+   "price": 8,
+   "text": "In battle: a wild creature of your own nature is much easier to befriend."
+  },
+  "herb": {
+   "name": "Herb",
+   "price": 0,
+   "sell": 4,
+   "text": "A fragrant herb. A herbalist could brew it into a remedy."
+  },
+  "shard": {
+   "name": "Rift shard",
+   "price": 0,
+   "sell": 6,
+   "text": "A sliver of the Rift. A smith could forge two into a charm."
+  }
+ }
 }

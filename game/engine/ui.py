@@ -102,7 +102,8 @@ class UI:
         self.pending = deque()
         self.next_t = time.perf_counter()
         self.skipped = 0
-        self.fast = False                 # hold-to-skip is not used; kept for tests
+        self.confirm_quit = None          # (question, note, stay, leave): ask before Esc leaves
+        self.want_quit = False
 
     @property
     def S(self):
@@ -112,6 +113,9 @@ class UI:
     def poll(self):
         for k in self.keys.poll():
             if k == "quit":
+                if self.confirm_quit and not self.headless:
+                    self.want_quit = True
+                    continue
                 raise Quit()
             if k in ("bigger", "smaller"):
                 self.display.adjust += 1 if k == "bigger" else -1
@@ -159,12 +163,37 @@ class UI:
             self.skipped = 0
             self.display.present(cv, box_lines(rows), cols, rows_)
         self.poll()
+        if self.want_quit:
+            self.want_quit = False
+            self.ask_quit(cv, cols, rows_)
         self.next_t += 1 / self.FPS
         delay = self.next_t - time.perf_counter()
         if delay > 0:
             time.sleep(delay)
         elif delay < -0.25:
             self.next_t = time.perf_counter()
+
+    def ask_quit(self, cv, cols, rows_):
+        """Esc was pressed: check before leaving. Esc again goes back to the game."""
+        question, note, stay, leave = self.confirm_quit
+        sel = 0
+        while True:
+            blink = int(time.perf_counter() * 4) % 2 == 0
+            rows = [[(WHITE, "  " + question)], [(GREY, "  " + note)], []]
+            for i, label in enumerate((stay, leave)):
+                rows.append([(GOLD, "  " + ("\u25b6 " if (i == sel and blink) else "  ")),
+                             (GOLD if i == sel else WHITE, label)])
+            self.display.present(cv, box_lines(rows), cols, rows_)
+            for k in self.keys.poll():
+                if k in ("up", "down"):
+                    sel = 1 - sel
+                elif k == "quit" or (k == "enter" and sel == 0):
+                    self.pending.clear()
+                    self.next_t = time.perf_counter()
+                    return
+                elif k == "enter":
+                    raise Quit()
+            time.sleep(0.04)
 
     # ----- building blocks ----------------------------------------------
     def pause(self, draw, n, rows=()):
@@ -252,3 +281,53 @@ class UI:
                 if new >= n:
                     new = n - 1
                 sel = new
+
+    def grid_menu(self, draw, head, rows, desc=None, start=(0, 0), blocked=None, tag=None):
+        """Like menu(), but each row can hold a different number of cells.
+
+        rows     list of rows; each row is a list of cells (segment lists)
+        Returns (row, column) of the chosen cell. desc and blocked take (row, column).
+        """
+        r, c = start
+        r = max(0, min(r, len(rows) - 1))
+        c = max(0, min(c, len(rows[r]) - 1))
+        note = None
+        self.take()
+        while True:
+            blink = (self.tick // 6) % 2 == 0
+            out = [head]
+            for ri, cells in enumerate(rows):
+                width = (INNER - 2) // len(cells)
+                seg = [(GOLD, "  ")]
+                for ci, cell in enumerate(cells):
+                    here = (ri, ci) == (r, c)
+                    seg.append((GOLD, "▶ " if (here and blink) else "  "))
+                    used = 2
+                    for j, (col, t) in enumerate(cell):
+                        seg.append((GOLD if (here and j == 0) else col, t))
+                        used += len(t)
+                    seg.append((GREY, " " * max(0, width - used)))
+                out.append(seg)
+            if note:
+                out.append([(RED, "  " + note)])
+            elif desc:
+                out.append(desc(r, c))
+            self.frame(draw(), out)
+            for k in self.take():
+                note = None
+                if k == "left":
+                    c = (c - 1) % len(rows[r])
+                elif k == "right":
+                    c = (c + 1) % len(rows[r])
+                elif k in ("up", "down"):
+                    nr = (r + (1 if k == "down" else -1)) % len(rows)
+                    old, new = len(rows[r]), len(rows[nr])
+                    c = int(round(c * (new - 1) / (old - 1))) if old > 1 else 0
+                    c = max(0, min(c, new - 1))
+                    r = nr
+                elif k == "enter":
+                    msg = blocked(r, c) if blocked else None
+                    if not msg:
+                        return r, c
+                    note = msg
+

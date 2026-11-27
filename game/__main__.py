@@ -3,19 +3,26 @@
     python -m game              (from the repo root; or use play.bat / play.sh)
 
 Options:
-    --sixel          force HD pictures drawn with real pixels (Sixel)
-    --blocks         force retro pictures drawn with coloured text blocks
-    --hero NAME      skip the opening and start as this hero (e.g. marisol or wave)
-    --from citadel   (with --hero) skip the five Lords and start at the Citadel
-    --from top       (with --hero) skip straight to the final floor
+    --sixel            force HD pictures drawn with real pixels (Sixel)
+    --blocks           force retro pictures drawn with coloured text blocks
+    --trial            go straight to the quick taste (about ten minutes)
+
+For trying out later parts without playing up to them (your saved journey
+is left alone):
+    --hero NAME --from LAND      start in a land: home, 1, 2, 3, 4 or 5
+    --hero NAME --from citadel   start at the foot of the Citadel
+    --hero NAME --from top       start at the Citadel's final floor
 """
 import sys
 
 from . import rules as R
+from . import state as S
 from .engine import sixel, term
 from .engine.display import Display
 from .engine.ui import UI, Quit
-from .story import Game, Member, Stage
+from .story import STORY, Game
+
+T = R.TUNING
 
 
 def find_hero(word):
@@ -46,46 +53,73 @@ def make_display(argv):
     return Display("blocks", sys.stdout)
 
 
-def play_once(ui, hero, start):
+def preview_state(hero, where):
+    """A journey already some way along, with the party it would have by then."""
+    stage = {"home": 0, "citadel": 6, "top": 6}.get(where)
+    if stage is None:
+        if where not in ("1", "2", "3", "4", "5"):
+            raise SystemExit("--from takes home, 1-5, citadel or top")
+        stage = int(where)
+    st = S.State(hero)
+    joined = min(stage, 6) - 1                      # Lords already won over
+    if stage > 0:
+        i = min(stage - 1, 4)
+        st.party[0].team = R.make_team(hero, T["expected"]["levels"][i] - 1, T["expected"]["team"][i])
+    for k in range(max(0, joined)):
+        el = st.order[k]
+        st.party.append(S.Member(el, R.make_team(el, T["lords"]["levels"][k], T["lords"]["sizes"][k])))
+    st.stage = stage
+    st.bag = {"remedy": 3, "tonic": 2, "charm": 2, "lure": 1}
+    st.coins = 40 + 20 * stage
+    if where == "top":
+        st.floor = 5
+        st.pos = (0, 0)
+        top = max(m.level for m in st.team)
+        for ally in st.allies:
+            for mon in ally.team:
+                mon.set_level(max(mon.level, top))
+    return st
+
+
+def play(ui, argv):
     g = Game(ui)
-    if not hero:
-        g.run()
-        return
-    g.start(hero)
-    if start in ("citadel", "top"):
-        for el in g.order:                      # everyone has already joined
-            g.level += 1
-            g.party.append(Member(el, 1.0))
-        for m in g.party:
-            m.mon.set_power(R.level_power(g.level), keep_ratio=False)
-        g.citadel(first_floor=5 if start == "top" else 0)
+    hero = option(argv, "--hero")
+    where = option(argv, "--from")
+    if where and not hero:
+        raise SystemExit("--from needs --hero as well")
+    if where:
+        g.no_save = True
+        g.play_journey(preview_state(find_hero(hero), where), fresh=False)
+    elif "--trial" in argv:
+        g.play_trial(find_hero(hero) if hero else g.choose_hero())
     else:
-        g.play("hero_intro", stage=Stage(ui, hero))
-        g.journey()
-        g.citadel()
-    g.outro()
-    g.end()
+        g.run()
 
 
 def main(argv):
     if "--help" in argv or "-h" in argv:
         print(__doc__)
         return
-    hero = option(argv, "--hero")
-    hero = find_hero(hero) if hero else None
-    start = option(argv, "--from")
-    if start not in (None, "citadel", "top"):
-        raise SystemExit("--from takes 'citadel' or 'top'")
-    if start and not hero:
-        raise SystemExit("--from needs --hero as well")
+    hero = option(argv, "--hero")                   # check the options before taking over the screen
+    if hero:
+        find_hero(hero)
+    where = option(argv, "--from")
+    if where:
+        preview_state(find_hero(hero or "wave"), where)
     term.prepare_stdout()
     display = make_display(argv)
     keys = term.Keys()
     term.enter_screen(sys.stdout)
     try:
+        ui = UI(display, keys)
+        q = STORY["quit"]
+        ui.confirm_quit = (q["ask"], q["saved"], q["stay"], q["leave"])
         while True:
-            play_once(UI(display, keys), hero, start)
+            play(ui, argv)
             display.reset()
+            if "--trial" in argv or option(argv, "--from"):
+                argv = [a for a in argv if a not in ("--trial",)]
+                argv = [a for i, a in enumerate(argv) if a != "--from" and (i == 0 or argv[i - 1] != "--from")]
     except (Quit, KeyboardInterrupt):
         pass
     finally:

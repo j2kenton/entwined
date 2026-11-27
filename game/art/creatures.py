@@ -6,25 +6,26 @@ dark "shadow" version, and a hybrid (dark body, accents of a second element).
 import math
 
 from ..engine.canvas import Canvas, I, Sprite, ball_shader, darker, lighter, mix
-from ..rules import ELEMENTS
+from ..rules import ELEMENTS, SPECIES
+from . import creatures2
 
 PALETTES = {
-    "wave": dict(body=(66, 150, 232), hi=(130, 200, 250), lo=(34, 92, 176), belly=(196, 238, 250),
+    "ripplefin": dict(body=(66, 150, 232), hi=(130, 200, 250), lo=(34, 92, 176), belly=(196, 238, 250),
                  accent=(110, 226, 214), accent_lo=(70, 180, 190), tip=(246, 140, 186),
                  eye=(18, 30, 66), mark=(210, 248, 255), outline=(14, 34, 78), cheek=(246, 150, 190)),
-    "flame": dict(body=(238, 118, 44), hi=(255, 172, 92), lo=(176, 66, 28), belly=(255, 228, 184),
+    "emberkit": dict(body=(238, 118, 44), hi=(255, 172, 92), lo=(176, 66, 28), belly=(255, 228, 184),
                   accent=(255, 140, 40), accent_lo=(230, 60, 30), tip=(255, 224, 96),
                   eye=(44, 20, 22), mark=(255, 220, 90), outline=(54, 20, 16), cheek=(250, 150, 110)),
-    "root": dict(body=(156, 114, 72), hi=(196, 156, 104), lo=(108, 74, 46), belly=(238, 216, 172),
+    "bramblehog": dict(body=(156, 114, 72), hi=(196, 156, 104), lo=(108, 74, 46), belly=(238, 216, 172),
                  accent=(96, 176, 72), accent_lo=(52, 124, 58), tip=(244, 128, 160),
                  eye=(30, 24, 20), mark=(200, 240, 130), outline=(40, 30, 22), cheek=(240, 150, 130)),
-    "breeze": dict(body=(226, 242, 246), hi=(255, 255, 255), lo=(160, 204, 216), belly=(255, 250, 236),
+    "gustwing": dict(body=(226, 242, 246), hi=(255, 255, 255), lo=(160, 204, 216), belly=(255, 250, 236),
                    accent=(110, 200, 212), accent_lo=(60, 150, 172), tip=(255, 200, 70),
                    eye=(24, 40, 60), mark=(170, 235, 230), outline=(30, 60, 80), cheek=(250, 170, 170)),
-    "soil": dict(body=(150, 106, 68), hi=(192, 150, 104), lo=(100, 68, 44), belly=(218, 186, 146),
+    "loamkin": dict(body=(150, 106, 68), hi=(192, 150, 104), lo=(100, 68, 44), belly=(218, 186, 146),
                  accent=(238, 226, 198), accent_lo=(150, 150, 162), tip=(240, 140, 150),
                  eye=(26, 20, 18), mark=(110, 110, 126), outline=(44, 28, 20), cheek=(224, 134, 122)),
-    "lightning": dict(body=(232, 230, 244), hi=(255, 255, 255), lo=(176, 172, 208), belly=(72, 66, 100),
+    "nimbleat": dict(bright_eyes=True, body=(232, 230, 244), hi=(255, 255, 255), lo=(176, 172, 208), belly=(72, 66, 100),
                       accent=(255, 225, 80), accent_lo=(222, 162, 40), tip=(255, 250, 180),
                       eye=(255, 240, 150), mark=(190, 150, 255), outline=(40, 34, 64), cheek=(230, 130, 160)),
 }
@@ -34,18 +35,24 @@ def _shade(c):
     return mix(darker(c, 0.5), (48, 28, 70), 0.3)
 
 
-def palette(element, variant="normal", other=None):
-    p = dict(PALETTES[element])
+PALETTES.update(creatures2.PALETTES)
+
+
+def palette(sid, variant="normal", other=None):
+    """Colours for a species: normal, a villain's "shadow", or a hybrid with
+    accents of a second element (`other`)."""
+    p = dict(PALETTES[sid])
+    bright = p.pop("bright_eyes", False)      # small glowing eyes on a dark face
     p["glint"] = (255, 255, 255)
     if variant == "normal":
         return p
     q = {k: _shade(v) for k, v in p.items()}
     q["outline"] = (10, 6, 16)
-    # dark eyes with a red glint (Nimbleat's face is dark, so its small eyes glow instead)
-    q["eye"] = (14, 8, 22) if element != "lightning" else (255, 90, 110)
-    q["glint"] = (255, 70, 90) if element != "lightning" else (255, 220, 225)
+    # dark eyes with a red glint (or, on a dark face, small eyes that glow red)
+    q["eye"] = (255, 90, 110) if bright else (14, 8, 22)
+    q["glint"] = (255, 220, 225) if bright else (255, 70, 90)
     q["belly"] = mix(darker(p["belly"], 0.62), (60, 40, 80), 0.3)
-    if element == "lightning":
+    if sid == "nimbleat":
         q["belly"] = (34, 26, 48)
     q["tip"] = (200, 80, 210)
     if variant == "hybrid" and other:
@@ -56,7 +63,7 @@ def palette(element, variant="normal", other=None):
         q["accent_lo"] = darker(oc, 0.65)
         q["mark"] = lighter(oc, 0.5)
         q["tip"] = lighter(oc, 0.6)
-        if element == "lightning":
+        if bright:
             q["eye"] = lighter(oc, 0.3)
         else:
             q["glint"] = lighter(oc, 0.3)
@@ -308,26 +315,27 @@ def nimbleat(s, p, phase=0):
             s.set(x - 1, y + 1, p["accent"])
 
 
-# element -> (draw function, box width, box height, anchor x, foot y, animation frames)
+# species id -> (draw function, box width, box height, anchor x, foot y, animation frames)
 SPECS = {
-    "wave": (ripplefin, 52, 44, 24, 42.5, 1),
-    "flame": (emberkit, 40, 34, 18.5, 33.5, 6),
-    "root": (bramblehog, 46, 36, 23, 35.5, 1),
-    "breeze": (gustwing, 44, 37, 22, 36, 4),
-    "soil": (loamkin, 46, 33, 23, 32, 1),
-    "lightning": (nimbleat, 44, 38, 22, 37.5, 4),
+    "ripplefin": (ripplefin, 52, 44, 24, 42.5, 1),
+    "emberkit": (emberkit, 40, 34, 18.5, 33.5, 6),
+    "bramblehog": (bramblehog, 46, 36, 23, 35.5, 1),
+    "gustwing": (gustwing, 44, 37, 22, 36, 4),
+    "loamkin": (loamkin, 46, 33, 23, 32, 1),
+    "nimbleat": (nimbleat, 44, 38, 22, 37.5, 4),
 }
+SPECS.update(creatures2.SPECS)
 
 _cache = {}
 
 
-def frames(element, variant, other, S, height):
-    """Sprites for a creature, `height` logical pixels tall on a scale-S canvas."""
-    key = (element, variant, other, S, height)
+def frames(sid, variant, other, S, height):
+    """Sprites for a species, `height` logical pixels tall on a scale-S canvas."""
+    key = (sid, variant, other, S, height)
     if key not in _cache:
-        draw, w, h, ax, foot, n = SPECS[element]
+        draw, w, h, ax, foot, n = SPECS[sid]
         z = S * height / h
-        pal = palette(element, variant, other)
+        pal = palette(sid, variant, other)
         out = []
         for i in range(n):
             cv = Canvas(w, h, scale=z)

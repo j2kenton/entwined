@@ -390,6 +390,160 @@
     "title": "THE END",
     "line": "{hero} and {sweetheart} went home to {land}. The five Lords went with them as far as the border.",
     "stats": "Battles lost along the way: {losses}.   Turns fought: {turns}.",
-    "again": "Thanks for playing Entwined. Press Enter to play again, or Esc to quit."
+    "again": "Thank you for playing. Press Enter to return to the title."
+  },
+  "menu": {
+    "continue": "Carry on your journey",
+    "new": "Begin a new journey",
+    "trial": "A quick taste (about ten minutes)",
+    "new_warning": "Beginning again will replace the journey you have saved.",
+    "hint": "Arrow keys or WASD choose.  Enter confirms.  Esc leaves."
+  },
+  "home": [
+    [
+      "narr",
+      "First, though, there's home to walk through one last time."
+    ],
+    [
+      "narr",
+      "The inn will see to your creatures. The market sells what a traveller needs. And in the long growth off the road, there are wild {element} creatures who might yet come with you."
+    ]
+  ],
+  "folk": {
+    "home": [
+      "One creature won't get you far. The wild ones out in the long growth trust a {element} hand, and they trust it sooner once they're tired.",
+      "The innkeeper will rest your creatures and remember how far you've come. Stop in before the border."
+    ],
+    "away": [
+      "{lord} doesn't wait at the gate like other Lords. {Lord_they} will find you.",
+      "Everything that lives here is {land_element} through and through. They'll fight you, stranger. They'll never follow you.",
+      "Now and then a {element} creature strays over the border. Lost, mostly. It might be glad of a familiar face.",
+      "The raiders came through last month. Our creatures hit them with everything. It was like hitting a wall."
+    ]
+  },
+  "sign": "{land}.  East: the border road.",
+  "inn_ask": "A bed, a fire, and a place for your creatures. Stay a while?",
+  "inn_done": "Morning. Your creatures are rested, and your journey so far is safely remembered.",
+  "market_ask": "What'll it be, traveller?",
+  "market_full": "You've no room for that. Your satchel holds eight bundles of three.",
+  "market_poor": "You haven't the coins for that.",
+  "found": {
+    "herb": "A fragrant herb, growing wild.",
+    "herb_brewed": "A fragrant herb. Rowan crushes it into a remedy before you've even put it away.",
+    "shard": "A sliver of the Rift, still faintly warm.",
+    "chest": "A traveller's cache, hidden well. Inside: {loot}.",
+    "full": "There's no room left in your satchel."
+  },
+  "navigator": "There's a way through here. Most people walk straight past it.",
+  "gate_shut": "The border gate is barred. Nobody crosses without the Lord's word.",
+  "gate_ask": "Cross into {next_land}? There's no coming back this way.",
+  "gate_citadel": "Beyond the border, the road climbs to the Citadel. There's no coming back this way.",
+  "lookout": "Hold on. Someone's waiting up ahead.",
+  "forecast": {
+    "wave": "Rain on the way. Wave moves will hit harder today.",
+    "flame": "A dry, hot wind. Flame moves will hit harder today.",
+    "root": "Warm and damp. Growing weather: Root moves will hit harder today.",
+    "breeze": "Gusts all day. Breeze moves will hit harder.",
+    "soil": "Dust hanging in the air. Soil moves will hit harder today.",
+    "lightning": "There's a storm building. Lightning moves will hit harder."
+  },
+  "blackout": "Your creatures can't go on. You carry them back to where you last rested.",
+  "bonded": "{creature} joins your team.",
+  "camp": "Bram finds a sheltered hollow and builds a fire. Everyone rests, and your journey so far is remembered.",
+  "camp_used": "One camp to a land. There isn't the stone here for another.",
+  "forge": "Kael works two shards over the fire until they run together. A charm.",
+  "lord_fall_back": "Fall back and get ready",
+  "lord_ally": "Let an ally try",
+  "allies_ready": [
+    [
+      "narr",
+      "On the last night before the Citadel, the Lords train their creatures alongside yours until none of them lags behind."
+    ]
+  ],
+  "blocked": {
+    "wave": {
+      "scene": "A wall of fire fills the stairway from side to side. The stones around it are scorched black.",
+      "done": "Water roars up the stair. The fire hisses, sinks and dies."
+    },
+    "flame": {
+      "scene": "Thorned vines as thick as a wrist have grown right across the door. They're tinder-dry.",
+      "done": "The vines catch at once, curl and fall away as ash."
+    },
+    "root": {
+      "scene": "The bridge is gone. Across the gap, old roots trail from both edges, grey but not quite dead.",
+      "done": "The roots stir, stretch and knot together into a bridge."
+    },
+    "breeze": {
+      "scene": "The hall ahead is thick with choking smoke. Somewhere in it is the way up.",
+      "done": "One long breath of wind, and the smoke rolls out through the arrow-slits."
+    },
+    "soil": {
+      "scene": "The floor has fallen away into a pit. Loose rubble is heaped at its edge.",
+      "done": "The rubble shifts, settles and packs itself into steps."
+    },
+    "lightning": {
+      "scene": "An iron door, three hands thick. Beside it, copper coils run down into a silent machine.",
+      "done": "The coils sing. Deep in the wall, gears turn, and the door grinds open."
+    }
+  },
+  "blocked_ask": "Whose creatures can clear the way?",
+  "blocked_fail": "{trainer}'s creatures strain at it. Nothing gives, and the effort leaves them tired.",
+  "trial_start": [
+    [
+      "narr",
+      "This is a short taste of the journey: one Lord, one floor of the Citadel, and what waits at the top."
+    ]
+  ],
+  "trial_bridge": [
+    [
+      "narr",
+      "Four more Lords, a great many miles and a great many battles later..."
+    ]
+  ],
+  "trial_top": [
+    [
+      "narr",
+      "Four floors higher..."
+    ]
+  ],
+  "trial_end": {
+    "title": "ENTWINED",
+    "line": "That was a taste. The full journey has six lands to walk, wild creatures to befriend, and a Citadel that fights back.",
+    "again": "Press Enter to return to the title."
+  },
+  "gifts": {
+    "wave": [
+      "Navigator",
+      "Spots ways through that other travellers walk straight past."
+    ],
+    "flame": [
+      "Forgemaster",
+      "Forges two Rift shards into a charm. Ask from your pack."
+    ],
+    "root": [
+      "Herbalist",
+      "Turns any herb you find into a remedy on the spot."
+    ],
+    "breeze": [
+      "Lookout",
+      "Sees trouble on the road before it sees you."
+    ],
+    "soil": [
+      "Campbuilder",
+      "Makes camp once in each land: a full rest, wherever you are. Ask from your pack."
+    ],
+    "lightning": [
+      "Storm-reader",
+      "Reads the day's weather, and which nature it favours."
+    ]
+  },
+  "gift_joins": "{lord} is a {gift}. {what}",
+  "camp_self": "You find a sheltered hollow and build a fire. Everyone rests, and your journey so far is remembered.",
+  "forge_self": "You work two shards over the fire until they run together. A charm.",
+  "quit": {
+    "ask": "Leave Entwined?",
+    "saved": "Your journey is remembered from the last time you rested.",
+    "stay": "Keep playing",
+    "leave": "Leave"
   }
 }

@@ -1,10 +1,14 @@
 {
   "damage_k": 0.3,
   "start_level": 5,
+  "level_cap": 20,
   "growth_per_level": 0.04,
-  "lord_power": [1.2, 1.14, 1.03, 1.03, 0.88],
-  "citadel_first_power": 1.0,
-  "citadel_sixth_power": 1.0,
-  "nemesis_first_power": 1.0,
-  "hybrid_power": 1.3
+  "weather_boost": 1.15,
+  "wild_levels": [[3, 5], [5, 7], [7, 9], [9, 11], [11, 13], [13, 15]],
+  "lords": {"levels": [7, 10, 11, 14, 14], "sizes": [4, 4, 3, 3, 2]},
+  "expected": {"levels": [8, 10, 12, 14, 16], "team": [2, 3, 3, 4, 4]},
+  "citadel": {"ally_level": 16, "nemesis_level": 19, "nemesis_size": 2, "sixth_level": 20,
+              "final_level": 19, "final_size": 3, "hybrid_level": 22},
+  "trial": {"hero_level": 12, "lord_level": 18, "nemesis_level": 8, "sixth_level": 8,
+            "final_level": 9, "hybrid_level": 17}
 }
