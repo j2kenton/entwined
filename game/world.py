@@ -25,12 +25,12 @@ THEMES = {
     "root": dict(ground=(98, 164, 86), ground2=(86, 150, 78), path=(190, 160, 110), habitat=(52, 124, 64),
                  water=(70, 150, 200), block="tree", leaf=(44, 110, 62), trunk=(104, 70, 44),
                  deep=(30, 80, 52), floor=(170, 150, 116), roof=(150, 90, 50)),
-    "breeze": dict(ground=(206, 212, 226), ground2=(192, 200, 216), path=(232, 236, 244), habitat=(150, 210, 200),
-                   water=(170, 214, 250), block="spire", leaf=(150, 162, 190), trunk=(110, 124, 156),
-                   deep=(178, 214, 250), floor=(184, 190, 208), roof=(90, 170, 190)),
-    "soil": dict(ground=(196, 128, 86), ground2=(182, 114, 76), path=(226, 172, 124), habitat=(160, 150, 80),
-                 water=(90, 150, 170), block="rock", leaf=(160, 92, 62), trunk=(120, 66, 46),
-                 deep=(134, 76, 52), floor=(170, 124, 96), roof=(120, 76, 50)),
+    "breeze": dict(ground=(160, 204, 160), ground2=(146, 192, 148), path=(226, 222, 204), habitat=(84, 168, 146),
+                   water=(150, 204, 246), block="spire", leaf=(150, 162, 190), trunk=(110, 124, 156),
+                   deep=(178, 214, 250), floor=(204, 200, 188), roof=(90, 170, 190)),
+    "soil": dict(ground=(186, 154, 110), ground2=(172, 140, 98), path=(224, 200, 158), habitat=(146, 160, 86),
+                 water=(90, 150, 170), block="rock", leaf=(152, 120, 86), trunk=(108, 82, 58),
+                 deep=(120, 94, 66), floor=(178, 152, 120), roof=(128, 94, 62)),
     "lightning": dict(ground=(94, 88, 132), ground2=(84, 78, 120), path=(140, 132, 180), habitat=(150, 130, 200),
                       water=(50, 56, 110), block="rock", leaf=(64, 58, 100), trunk=(44, 40, 74),
                       deep=(40, 36, 70), floor=(116, 110, 150), roof=(230, 200, 80)),
@@ -159,7 +159,7 @@ class Land:
                 and abs(x - nx) > 2]
         r.shuffle(free)
         self.pickups = {}
-        for i, kind in enumerate(["herb", "herb", "herb", "shard", "shard"]):
+        for i, kind in enumerate(["herb", "herb", "herb", "shard", "shard", "coins", "bundle", "coins", "herb", "coins"]):
             if i < len(free):
                 self.pickups[free[i]] = kind
         self.pickups[self.chest] = "chest"
@@ -214,7 +214,7 @@ class World:
         self.pilot = None                   # tests: a function (world) -> key
         self.repaint()
         self.sprites = {}
-        self.item_sprites = {k: item_sprite(k, self.S) for k in ("herb", "shard", "chest")}
+        self.item_sprites = {k: item_sprite(k, self.S) for k in ("herb", "shard", "chest", "coins", "bundle")}
         self.folk_looks = [dict(look, hair=(90 + 40 * i, 70, 50), coat=(150 - 30 * i, 120, 90 + 40 * i),
                                 hat=None, hat_style="none") for i in range(len(land.folk))]
 

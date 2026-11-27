@@ -12,7 +12,7 @@ A classic-style creature-battling adventure that plays entirely in the terminal,
   <img src="screens/clip.gif" width="70%" alt="A clip of the game: a wild Flaremoth is worn down and befriended with a lure, then a companion faces a dark creature inside the Citadel">
 </p>
 
-You were about to be married to the Master of the Citadel. Then word came down the road: the Citadel has fallen, with your sweetheart inside. You know who leads the six who took it: your oldest friend, turned rival.
+You were about to be married to the Master of the Citadel. Then word came down the road: the Citadel has been taken, and its Master with it. You know who leads the six who took it: your oldest friend, turned rival.
 
 Choose one of six heroes, each bonded to a creature of their own nature. Walk six lands, befriend wild creatures, battle the Master of each land and win them to your side, then climb the Citadel together. The six inside have done something everyone knew was impossible, and one of them grew up beside you.
 
@@ -88,10 +88,15 @@ If the window is too small, the game says how to fix it, then starts by itself o
 - **Befriending.** A wild creature will only join a master of its own nature. Wear it down, then offer a lure. The weaker it is and the tastier the lure, the likelier it accepts. Each team holds up to five.
 - **Towns** have an inn and a market. Resting at the inn heals everyone. The market sells remedies, tonics, charms and elixirs, and lures for the creatures of that land, in three grades. Your satchel only holds so much.
 - **Each land is kept by a Master of its nature,** and they don't wait at the gate. Beat them and they join you with their own creatures and a gift: one spots hidden paths, one brews herbs, one makes camp, and so on. The first you meet has a single creature; the last has five. Once a Master is with you, the creatures of their nature will listen to them, so their team can grow too.
-- **Anyone in your party can take a fight.** When you meet a wild creature or a Master, you choose whose team goes in. Companions fight their own battles, but they'll suggest a move and wait for your say. Press Enter to agree, or pick another.
+- **Anyone in your party can take a fight.** When you meet a wild creature or a Master, you choose whose team goes in, and then which of their creatures goes first. Each choice has a page of its own, showing every creature's level and health; it's skipped when there is nothing to choose. Companions fight their own battles, but they'll suggest a move and wait for your say. Press Enter to agree, or pick another.
 - **A healing touch.** Each master can mend creatures of their own nature a few times between rests. It can't wake one that has fainted; only a rest does that.
 - **Borders open both ways.** You can always walk back to a land you've already crossed, to train or to befriend.
 - **The Citadel has no rest and no way out.** On each floor one of your companions faces their own nemesis, who keeps more creatures the higher you climb. Whatever the nemesis sends out, their old friend must meet first; after that anyone can step in. Between floors there's time to use your satchel and your healing touches, and nothing else. The Citadel doesn't wait for you to be ready, though a companion will say so if they think you aren't.
+
+<p align="center">
+  <img src="screens/choose_master.png" width="45%" alt="Choosing who fights: a master, with each of their creatures' level and health listed beside them, under a banner naming the creature they would face">
+  <img src="screens/choose_creature.png" width="45%" alt="Choosing which creature goes first: the one under the cursor shown large, the rest of the team listed beside it, one of them fainted">
+</p>
 
 **Rest points.** The game remembers one rest point for each land and one for each floor of the Citadel. Arriving makes it; resting there again replaces it. You can go back to an earlier one from the title screen, or after losing a floor. They're kept in a file called `journey.json`, in a folder named `.entwined` in your home folder. Delete it to forget the journey.
 

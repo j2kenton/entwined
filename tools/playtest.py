@@ -122,6 +122,17 @@ class RobotUI(UI):
             if 2 in valid:
                 return 2
             return 3
+        if kind == "item" and getattr(robot, "want_lure", False):
+            robot.want_lure = False
+            _, keys, b = tag
+            right = [i for i, k in enumerate(keys) if k in R.LURES and R.LURES[k][0] == b.enemy.mon.element and i in valid]
+            return right[-1] if right else n - 1
+        if kind == "sell":
+            _, keys, st = tag
+            for i, k in enumerate(keys):
+                if k in ("herb", "shard"):
+                    return i
+            return n - 1
         if kind == "shop" and sensible:
             _, stock, st = tag
             if stock[0] == "remedy":
@@ -179,12 +190,25 @@ class RobotUI(UI):
         if kind == "teammate":
             _, team, b, forced = tag
             mine = [i for i in valid if i < len(team)]
+            if b is None and mine:                  # before a fight: whoever the robot has put first leads,
+                return mine[0]                      # (the one that most needs the practice)
             return max(mine, key=lambda i: (team[i].level, team[i].ratio)) if mine else n - 1
         if kind == "lure":
             return len(tag[1]) - 1
         if kind == "release" and r.random() > 0.05:
             return 0
         return r.choice(valid)
+
+    def pager(self, draw, rows, n, start=0, blocked=None, cancel=False, tag=None):
+        r = self.keys.r
+        if r.random() < 0.06:                       # now and then, through the real page with real keys
+            return UI.pager(self, draw, rows, n, start, blocked, cancel, tag)
+        for i in (range(n) if r.random() < 0.1 else [start]):
+            cv = draw(i)
+            rows(i, True, blocked(i) if blocked else None)
+        options = [[(None, "x")]] * n + ([[(None, "Back")]] if cancel else [])
+        i = self.menu(lambda: cv, [], options, blocked=lambda i: blocked(i) if blocked and i < n else None, tag=tag)
+        return None if i >= n else i
 
     def grid_menu(self, draw, head, rows, desc=None, start=(0, 0), blocked=None, tag=None):
         r = self.keys.r
@@ -204,9 +228,10 @@ class RobotUI(UI):
 
         def cell(kind):
             return next((c for c, a in acts.items() if a[0] == kind), None)
-        if b.wild and cell("lure"):
+        if b.wild and cell("satchel") and b.lure_problem(e) is None:
             if e.ratio < 0.45:
-                return cell("lure")
+                self.keys.want_lure = True
+                return cell("satchel")
             # wear it down gently: the lightest touch it has, so it doesn't faint first
             soft = [(c, a[1]) for c, a in acts.items() if a[0] == "move" and a[1].kind == "attack"]
             if soft:

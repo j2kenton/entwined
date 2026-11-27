@@ -175,6 +175,8 @@ _SMALL_ITEMS = {
     "chest": ["........", ".OOOOOO.", ".OllllO.", ".OOggOO.", ".ObggbO.", ".ObbbbO.", ".OOOOOO.", "........"],
     "herb": ["...f....", "..fyf...", "...f.l..", ".l.g.Ll.", ".Ll.gL..", "..LgL...", "...g....", "........"],
     "shard": ["...O....", "..OpO...", "..OpPO..", ".OpPPDO.", ".OpPDDO.", "..OPDO..", "...OO...", "........"],
+    "coins": ["........", "........", "...OO...", "..OyYO..", ".OOYYOO.", "OyYOOYYO", "OYYO.OO.", ".OO....."],
+    "bundle": ["........", "...OO...", "..OttO..", "...rr...", "..OLLO..", ".OlLLDO.", ".OLLDDO.", "..OOOO.."],
 }
 _SMALL_SIGN = ["........", "OOOOOOOO", "ObbbbbbO", "ObddddbO", "ObbbbbbO", "OOOOOOOO", "...pp...", "...pp..."]
 for _rows in (*_SMALL.values(), *_SMALL_LEGS.values(), *_SMALL_ITEMS.values(), _SMALL_SIGN):
@@ -293,11 +295,50 @@ _SHARD = _check([
     "................",
     "................",
 ])
+_COINS = _check([
+    "................",
+    "................",
+    "................",
+    "................",
+    ".....OOOO.......",
+    "....OyYYYO......",
+    "....OYYYYO.OOO..",
+    "....OYYYdOOyYYO.",
+    ".OOOOOdddOYYYYO.",
+    "OyYYYYOOOOYYYdO.",
+    "OYYYYYYOOOOdddO.",
+    "OYYYYYdO..OOOO..",
+    ".OdddddO........",
+    "..OOOOO.........",
+    "................",
+    "................",
+])
+_BUNDLE = _check([
+    "................",
+    "................",
+    "......OOOO......",
+    ".....OttttO.....",
+    "......OttO......",
+    ".....OOrrOO.....",
+    "....OllLLLLO....",
+    "...OllLLLLLDO...",
+    "...OlLLLLLLDO...",
+    "..OllLLLLLLDDO..",
+    "..OlLLLLLLLDDO..",
+    "..OlLLLLLLDDDO..",
+    "..OLLLLLLDDDDO..",
+    "...OOOOOOOOOO...",
+    "................",
+    "................",
+])
 _ITEMS = {
     "chest": (_CHEST, {"O": INK, "l": (214, 160, 92), "L": (176, 122, 66), "b": (170, 116, 62), "B": (140, 92, 50),
                        "g": (250, 210, 90)}),
     "herb": (_HERB, {"f": (255, 236, 244), "y": (250, 206, 90), "l": (190, 240, 150), "L": (60, 150, 80), "g": (40, 100, 56)}),
     "shard": (_SHARD, {"O": (70, 30, 100), "p": (236, 180, 255), "P": (190, 110, 240), "D": (130, 60, 190)}),
+    "coins": (_COINS, {"O": (110, 76, 20), "y": (255, 240, 150), "Y": (250, 206, 80), "d": (200, 150, 40)}),
+    "bundle": (_BUNDLE, {"O": INK, "t": (214, 190, 150), "r": (200, 70, 60), "l": (226, 206, 170), "L": (196, 170, 130),
+                         "D": (150, 124, 92)}),
 }
 
 

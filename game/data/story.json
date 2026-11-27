@@ -10,14 +10,14 @@
     ],
     [
       "narr",
-      "Where the six lands meet stands the Citadel. It belongs to none of them."
+      "Where the six lands meet stands the Citadel. It belongs to none of them, and it has a Master of its own."
     ]
   ],
   "choose_hero": "Whose story is this?",
   "hero_intro": [
     [
       "narr",
-      "{hero} of {land} was to marry {sweetheart} this spring.",
+      "You are {hero} of {land}. This spring you were to marry {sweetheart}.",
       [
         "hero",
         "sweetheart"
@@ -25,21 +25,28 @@
     ],
     [
       "narr",
-      "{sweetheart} is Master of the Citadel. {Sw_they} earned it the long way, and {sw_their} {sw_creature} has never once lost to {hero}'s {creature}.",
+      "{sweetheart} worked {sw_their} way up to become Master of the Citadel.",
       [
         "sweetheart"
       ]
     ],
     [
       "narr",
-      "Then word came down the road at dusk: the Citadel has fallen. Six Masters, answering to nobody. {sweetheart} was inside.",
+      "{Sw_their} {sw_creature} has never once lost to your {creature}.",
+      [
+        "sweetheart"
+      ]
+    ],
+    [
+      "narr",
+      "Then word came down the road at dusk: six Masters who answer to nobody now hold the Citadel - and {sweetheart}!",
       [
         "hero"
       ]
     ],
     [
       "narr",
-      "{hero} knows who leads them. {Hero_they} taught {nem_first} to hold out {nem_their} first lure.",
+      "You know who leads them. You taught {nem_first} to hold out {nem_their} first lure.",
       [
         "hero",
         "nemesis"
@@ -54,7 +61,7 @@
     ],
     [
       "narr",
-      "{hero} sets out, with {creature} at {hero_their} side.",
+      "You set out, with {creature} at your side.",
       [
         "hero",
         "creature"
@@ -109,7 +116,7 @@
   "tell_quest": [
     [
       "narr",
-      "{hero} tells {lord} that the Citadel has fallen, and who was inside."
+      "You tell {lord} that the Citadel has been taken, and its Master with it."
     ]
   ],
   "joined": "{LORD} JOINS YOU!",
@@ -233,7 +240,7 @@
     ],
     [
       "narr",
-      "{hero} comes closer. It isn't {nem_first}.",
+      "You come closer. It isn't {nem_first}.",
       "roof:near"
     ],
     [
@@ -358,7 +365,7 @@
     ],
     [
       "narr",
-      "{hero} reaches the edge. Just below it, a narrow ledge. Below that, a ladder, and {nem_first} already halfway down the tower.",
+      "You reach the edge. Just below it, a narrow ledge. Below that, a ladder, and {nem_first} already halfway down the tower.",
       [
         "hero"
       ]
@@ -404,7 +411,7 @@
     ],
     [
       "narr",
-      "It's done. One by one, they turn for the stairs.",
+      "It's done. Your companions turn for the stairs, and you with them.",
       [
         "hero"
       ]
@@ -419,7 +426,7 @@
     ],
     [
       "narr",
-      "{hero} turns, and walks back to {sw_them}. The others go on down.",
+      "You turn, and walk back to {sw_them}. The others go on down.",
       [
         "hero",
         "sweetheart"
@@ -459,11 +466,15 @@
   "home": [
     [
       "narr",
-      "First, though, there's home to walk through one last time."
+      "But first, one last walk through {land}."
     ],
     [
       "narr",
       "The inn will see to your creatures. The market sells what a traveller needs. And in the long growth off the road, there are wild {element} creatures who might yet come with you."
+    ],
+    [
+      "narr",
+      "(Press M at any time to look over your creatures, your satchel and your coins.)"
     ]
   ],
   "folk": {
@@ -472,24 +483,27 @@
       "Five's the most anyone keeps. My uncle tried for six. We don't talk about the barn."
     ],
     "away": [
-      "{lord} isn't one to wait at the gate. {Lord_they}'ll find you.",
       "Everything that lives here is {land_element} through and through. They'll fight you, stranger. They'll never follow you.",
       "Now and then a {element} creature strays over the border. Lost, mostly. It might be glad of a familiar face.",
       "Six strangers came through last month, bound for the Citadel. Our creatures hit them with everything. It was like hitting a wall."
-    ]
+    ],
+    "master": "Stay by the inn and the stall and nobody will trouble you. Go on east, and sooner or later {lord} steps out to meet you. Nobody crosses {land} without beating {lord_them}.",
+    "master_gone": "{lord} is travelling with you? Then the road east is yours."
   },
-  "sign": "{land}.  East: the border road.",
+  "sign": "{land}. Travellers: the town is safe ground. East of it, {master} {lord} challenges all comers. Nobody crosses without beating {lord_them}.",
   "inn_ask": "A bed, a fire, and a place for your creatures. Stay a while?",
   "inn_done": "Morning. Your creatures are rested, and your journey so far is safely remembered.",
   "market_ask": "What'll it be, traveller?",
   "market_full": "You've no room for that. Your satchel holds eight bundles of three.",
-  "market_poor": "You haven't the coins for that.",
+  "market_poor": "You haven't the coins for that. Masters pay up when you beat them, and I buy any herbs or Rift shards you find.",
   "found": {
     "herb": "A fragrant herb, growing wild.",
     "herb_brewed": "A fragrant herb. Willow crushes it into a remedy before you've even put it away.",
     "shard": "A sliver of the Rift, still faintly warm.",
     "chest": "A traveller's cache, hidden well. Inside: {loot}.",
-    "full": "There's no room left in your satchel."
+    "full": "There's no room left in your satchel.",
+    "coins": "Coins in the dust, where someone dropped them. {n} of them.",
+    "bundle": "A traveller's bundle, lost off the road. Inside: {loot}."
   },
   "navigator": "There's a way through here. Most people walk straight past it.",
   "gate_shut": "The border gate is barred. Nobody crosses without the {master}'s word.",
@@ -608,7 +622,7 @@
   "own_first": [
     [
       "nemesis",
-      "Not them, {ally}. You. I want to watch you try."
+      "You first, {ally}. Alone. Your friends can wait until one of yours is down."
     ]
   ],
   "takes_over": "{creature} is down. Who takes over?",
@@ -628,13 +642,21 @@
     "done": "{trainer} lays a hand on {creature}. It recovers {n} HP.",
     "elixir_who": "Whose healing touch should the elixir restore?",
     "elixir_done": "{trainer}'s healing touch is as strong as ever.",
-    "elixir_full": "{trainer}'s healing touch is already at its strongest."
+    "elixir_full": "{trainer}'s healing touch is already at its strongest.",
+    "which_you": "You can mend one of your own. Which?",
+    "none_you": "You have no healing touch left. Only a proper rest, or an elixir, brings it back.",
+    "no_need_you": "None of your creatures needs it. It can't wake one that has fainted.",
+    "done_you": "You lay a hand on {creature}. It recovers {n} HP.",
+    "elixir_done_you": "Your healing touch is as strong as ever.",
+    "elixir_full_you": "Your healing touch is already at its strongest."
   },
   "market": {
     "supplies": "Supplies",
     "lures": "{element} lures",
     "lures_about": "Tempt a weakened wild {element} creature to join whoever of your party shares its nature.",
-    "supplies_about": "Remedies, tonics, charms and elixirs."
+    "supplies_about": "Remedies, tonics, charms and elixirs.",
+    "sell_about": "I'll buy anything in your satchel. Herbs and Rift shards turn up off the road: 4 coins a herb, 6 a shard.",
+    "sell_ask": "What are you selling?"
   },
   "floor_hints": {
     "1": [
@@ -649,7 +671,7 @@
   "outro_stairs": [
     [
       "narr",
-      "{hero} runs down after them.",
+      "You run down after them.",
       [
         "hero",
         "ally"
@@ -706,10 +728,10 @@
   ],
   "stall": {
     "none": "{El} lures. You'd want a {El}master with you for those. {El} creatures won't come to anyone else.",
-    "room_you": "I see you've {n} with you. Room for {left} more, then. Five's the most anyone keeps.",
+    "room_you": "I see you've {n} with you. Room for {left} more, then. Five creatures is the most anyone keeps.",
     "room_other": "{El} lures? They'll be for {name}, then. {name} has {n}, so there's room for {left} more.",
-    "full_you": "You sure? Looks like you've already got five. Any more than that and they start playing up.",
-    "full_other": "You sure? {name}'s already got five. Any more than that and they start playing up."
+    "full_you": "You sure? Looks like you've already got five creatures. Any more than that and they start playing up.",
+    "full_other": "You sure? {name}'s already got five creatures. Any more than that and they start playing up."
   },
   "wild_note": {
     "stranger": "A wild {El} creature. It'll fight, but it won't follow anyone travelling with you.",
@@ -718,5 +740,16 @@
   },
   "lure_mine": "Here, let me. It's one of mine.",
   "joins_kind": "The {El} creatures of {land} have someone to follow now. {lord} has room for {left} more.",
-  "joins_kind_full": "The {El} creatures of {land} have someone to follow now, though {lord} already keeps five."
+  "joins_kind_full": "The {El} creatures of {land} have someone to follow now, though {lord} already keeps five.",
+  "joins_coins": "{lord} presses a purse into your hand: {coins} coins for the road.",
+  "blocked_fail_you": "Your creatures strain at it. Nothing gives, and the effort leaves them tired.",
+  "sign_open": "{land}. The road east is open, by {master} {lord}'s word.",
+  "sign_home": "{land}. East: the border. Every land beyond has a Master of its own, and nobody crosses a land without beating its Master.",
+  "arrive": "{land}. The town ahead is safe ground. Somewhere east of it, {master} {lord} will step into the road, and nobody leaves {land} without beating {lord_them}.",
+  "ally_out_answer": [
+    [
+      "nemesis",
+      "A pity, {ally}. I wanted it to be you. Send me whoever you have left, then."
+    ]
+  ]
 }

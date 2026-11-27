@@ -137,6 +137,13 @@ class RecUI(UI):
         self.press(keys + ["enter"])
         return UI.menu(self, draw, head, options, cols, desc, start, blocked, col_width, tag)
 
+    def pager(self, draw, rows, n, start=0, blocked=None, cancel=False, tag=None):
+        want = self.next()                                  # a look at the next one along, then the one wanted
+        look = ["right", "left"] if n > 1 else []
+        for i, k in enumerate(look + ["right"] * ((want - start) % n) + ["enter"]):
+            self.keys.after(34 if i == 0 else 22, k)        # a page wants longer to take in than a menu
+        return UI.pager(self, draw, rows, n, start, blocked, cancel, tag)
+
     def grid_menu(self, draw, head, rows, desc=None, start=(0, 0), blocked=None, tag=None):
         want = self.next()
         _, b, act_at, _ = tag
@@ -182,7 +189,8 @@ def befriend(ui, seed):
     wild = W.Wild(near[0][0], near[0][1], R.Mon("flaremoth", 11))
     world.wild = [wild] + [W.Wild(x, y, R.Mon(sid, 9)) for (x, y), sid in zip(near[1:], ["gustwing", "whirlet"])]
     before = len(st.team)
-    ui.plan = [0, ("move", 0), ("move", 0), ("lure",)]
+    # you, your first creature, two attacks, then the satchel and the lure in it
+    ui.plan = [0, 0, ("move", 0), ("move", 0), ("satchel",), 1]
     ui.pause(world.draw, 14, g.hud(world)())
     g.wild_battle(world, wild)
     return len(st.team) == before + 1 and not ui.plan

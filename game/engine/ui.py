@@ -27,6 +27,11 @@ INNER = BOX_COLS - 2
 TEXT_ROWS = 5
 
 
+# Options that mean "never mind": Esc picks the last one of these a menu has.
+CANCEL = ("Back", "Leave", "Never mind", "Back to the road", "Not now", "Not yet", "Stay a while longer",
+          "Stay here", "Keep it", "Go back", "Keep playing", "Keep fighting")
+
+
 class Quit(Exception):
     pass
 
@@ -108,6 +113,7 @@ class UI:
         self.tester = None                # `play --test`: a function () -> [(label, action)]
         self.want_test = False
         self.battle = None                # the battle on screen, if there is one
+        self.cancel = None                # the "never mind" option of the menu on screen, if it has one
 
     @property
     def S(self):
@@ -116,6 +122,9 @@ class UI:
     # ----- frames and keys ----------------------------------------------
     def poll(self):
         for k in self.keys.poll():
+            if k == "quit" and self.cancel is not None:        # in a menu, Esc backs out of the menu
+                self.pending.append("back")
+                continue
             if k == "quit":
                 if self.confirm_quit and not self.headless:
                     self.want_quit = True
@@ -273,7 +282,52 @@ class UI:
                     return
 
     def menu(self, draw, head, options, cols=2, desc=None, start=0, blocked=None, col_width=47, tag=None):
-        """Arrow keys move, Enter picks. Returns the chosen index.
+        """Arrow keys move, Enter picks, Esc backs out (when there is a way out). Returns the chosen index."""
+        outs = [i for i, o in enumerate(options) if "".join(t for _, t in o).strip() in CANCEL]
+        was, self.cancel = self.cancel, (outs[-1] if outs else None)
+        try:
+            return self._menu(draw, head, options, cols, desc, start, blocked, col_width, tag)
+        finally:
+            self.cancel = was
+
+    def pager(self, draw, rows, n, start=0, blocked=None, cancel=False, tag=None):
+        """A full page for each choice. Left / Right flips through them, Enter picks,
+        Esc backs out (when `cancel`). Returns the index chosen, or None for "back".
+
+        draw     function (sel) -> the picture for that choice
+        rows     function (sel, blink, note) -> the text rows under it
+        blocked  function (sel) -> message if that choice can't be picked
+        tag      what is being chosen; only test robots look at it
+        """
+        sel = start
+        note = None
+        was, self.cancel = self.cancel, (-1 if cancel else None)
+        self.take()
+        try:
+            while True:
+                blink = (self.tick // 8) % 2 == 0
+                self.frame(draw(sel), rows(sel, blink, note))
+                for k in self.take():
+                    if k == "back" and cancel:
+                        sound.fx("next")
+                        return None
+                    if k in ("left", "up"):
+                        sel, note = (sel - 1) % n, None
+                        sound.fx("move")
+                    elif k in ("right", "down"):
+                        sel, note = (sel + 1) % n, None
+                        sound.fx("move")
+                    elif k == "enter":
+                        note = blocked(sel) if blocked else None
+                        if not note:
+                            sound.fx("select")
+                            return sel
+                        sound.fx("deny")
+        finally:
+            self.cancel = was
+
+    def _menu(self, draw, head, options, cols, desc, start, blocked, col_width, tag):
+        """The menu itself.
 
         head     segments for the top line, or a function (sel) -> segments
         options  list of segment lists, one per option
@@ -309,6 +363,9 @@ class UI:
             self.frame(draw(), rows)
             for k in self.take():
                 note = None
+                if k == "back" and self.cancel is not None:
+                    sound.fx("next")
+                    return self.cancel
                 if k in ("left", "right", "up", "down"):
                     sound.fx("move")
                 col, row = sel % cols, sel // cols

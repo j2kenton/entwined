@@ -15,6 +15,7 @@ import random
 from . import rules as R
 from . import state as S
 from . import world as W
+from . import choose
 from .art import backdrops, creatures, trainers
 from .battle import Battle, el_colour, sparks
 from .engine import sound
@@ -25,10 +26,6 @@ STORY = R.load("story")
 T = R.TUNING
 PRONOUNS = {"f": ("she", "her", "her"), "m": ("he", "him", "his")}
 COUNT = ["none", "one", "two", "three", "four", "five"]
-SHORT_WORD = {"strong": "strong", "slightly strong": "sl. strong", "even": "even",
-              "slightly weak": "sl. weak", "weak": "weak"}
-
-
 class Stage:
     """A story picture: a backdrop with up to three figures standing on it."""
 
@@ -95,6 +92,7 @@ class Game:
         who("hero", h["sex"])
         who("nem", h["sex"])
         ctx["nem_man"] = "woman" if h["sex"] == "f" else "man"
+        ctx["sw_theirs"] = "his" if h["sex"] == "f" else "hers"
         who("sw", "m" if h["sex"] == "f" else "f")
         beater = R.beater_of(st.hero)
         ctx.update(hero=h["name"], land=h["land"], folk=h["folk"], element=R.el_name(st.hero),
@@ -437,7 +435,7 @@ class Game:
             if world.land.home:
                 goal = "East is the border. Off the road, wild creatures move in the long growth."
             elif not st.lord_beaten:
-                goal = "Somewhere along this road, %s is waiting." % land["name"]
+                goal = "East of the town, %s may challenge you at any moment. Rest and stock up first." % land["name"]
             else:
                 goal = "The border gate stands open, to the east."
             top = [(col, "  " + land["land"].upper()), (GREY, "     Coins: %d" % st.coins)]
@@ -448,7 +446,8 @@ class Game:
                      (GREY, ("   and %d more" % more) if more else "")],
                     [(GREY, "  Satchel: " + bag)],
                     [(GREY, "  " + goal)],
-                    [(DIM, "  Arrows walk.  Enter talks and looks.  M opens your pack.")]]
+                    [(GREY, "  Arrows walk.  Enter talks and looks.  "), (GOLD, "M"),
+                     (GREY, ": your creatures, satchel and healing.")]]
         return rows
 
     def land_loop(self):
@@ -478,9 +477,12 @@ class Game:
         extra = dict(lord=lord["name"], land=lord["land"], land_element=R.el_name(el), master=R.el_name(el) + "master")
         for k, v in zip(("they", "them", "their"), PRONOUNS[lord["sex"]]):
             extra["Lord_" + k] = v.capitalize()
+            extra["lord_" + k] = v
         if first_visit:                                # reaching a land makes its rest point
             st.pos = land.start
             self.new_day(world)
+            if not home and not st.lord_beaten:        # what every traveller is told at the border
+                ui.say(world.draw, self.fmt(STORY["arrive"], **extra))
             self.forecast(world)
         while True:
             ev = world.run(rows, self.rng)
@@ -506,11 +508,17 @@ class Game:
             elif kind == "market":
                 self.market(world)
             elif kind == "sign":
-                ui.say(world.draw, self.fmt(STORY["sign"], **extra))
+                key = "sign_home" if home else ("sign_open" if st.lord_beaten else "sign")
+                ui.say(world.draw, self.fmt(STORY[key], **extra))
             elif kind == "folk":
-                lines = STORY["folk"]["home" if home else "away"]
-                i = ev[1] if home else ev[1] + st.stage
-                ui.say(world.draw, self.fmt(lines[i % len(lines)], **extra))
+                folk = STORY["folk"]
+                if home:
+                    line = folk["home"][ev[1] % len(folk["home"])]
+                elif ev[1] == 0:                           # one of them always knows about the Master
+                    line = folk["master_gone" if st.lord_beaten else "master"]
+                else:
+                    line = folk["away"][st.stage % len(folk["away"])]
+                ui.say(world.draw, self.fmt(line, **extra))
             elif kind == "pickup":
                 self.pickup(world, ev[1], ev[2])
             elif kind == "hidden":
@@ -553,6 +561,16 @@ class Game:
                    for k, n in (("remedy", 2), ("tonic", 1)) if st.add(k, n)]
             st.coins += 15
             ui.say(world.draw, found["chest"].format(loot=", ".join(got + ["15 coins"])))
+        elif kind == "coins":
+            n = 5 + (pos[0] * 7 + pos[1] * 3) % 6 + st.stage
+            st.coins += n
+            ui.say(world.draw, found["coins"].format(n=n))
+        elif kind == "bundle":
+            what = ["remedy", "remedy", "tonic", "lure_%s_1" % world.land.element][(pos[0] + pos[1] * 5) % 4]
+            if not st.add(what):
+                ui.say(world.draw, found["full"])
+                return
+            ui.say(world.draw, found["bundle"].format(loot="a " + R.ITEMS[what]["name"].lower()))
         elif kind == "herb" and st.has("root"):
             if not st.add("remedy"):
                 ui.say(world.draw, found["full"])
@@ -568,14 +586,29 @@ class Game:
         world.picked.add(pos)
         st.here["picked"] = [list(p) for p in world.picked]
 
-    def pick_fighter(self, draw, foe, head, why):
-        """Whose team takes this fight. Only asked once you have company."""
+    def pick_side(self, foe, head, why, members=None):
+        """Before a fight: which master goes in, then which of their creatures goes first.
+        Each is a page of its own, and each is only shown when there is a choice to make.
+        Returns (member, creature)."""
         st = self.st
-        if not st.allies:
-            return st.me
-        m = self.choose_trainer(draw, st.party, foe, head, start=min(st.lead, len(st.party) - 1), why=why)
-        st.lead = st.party.index(m)
-        return m
+        members = members or st.party
+        sound.battle()                                 # the fight's music starts here, on these pages
+        while True:
+            asked = sum(1 for m in members if m.standing) > 1
+            member = self.choose_trainer(None, members, foe, head, why=why)
+            lead = self.choose_lead(member, foe, wild=why == "wild", back=asked)
+            if lead or not asked:
+                st.lead = st.party.index(member)
+                return member, lead
+
+    def choose_lead(self, member, foe, wild=False, back=False):
+        """Which of a master's creatures goes in first. None if you went back (or nobody can)."""
+        alive = R.living(member.team)
+        if len(alive) <= 1:
+            return alive[0] if alive else None
+        head = "Which of %s goes first?" % ("yours" if member.is_hero else member.name + "'s")
+        return choose.creature(self.ui, member.team, foe, head, owner=member, wild=wild, cancel=back,
+                               tag=("teammate", member.team, None, not back))
 
     def wild_battle(self, world, w):
         st = self.st
@@ -587,11 +620,11 @@ class Game:
             self.ui.say(world.draw, STORY["wild_note"][key].format(
                 El=R.el_name(w.mon.element), name=keeper.name if keeper else "",
                 them=PRONOUNS[keeper.data["sex"]][1] if keeper else ""))
-        fighter = self.pick_fighter(world.draw, w.mon, self.fmt(STORY["who_wild"], creature=w.mon.name), "wild")
+        fighter, lead = self.pick_side(w.mon, self.fmt(STORY["who_wild"], creature=w.mon.name), "wild")
         b = Battle(self.ui, world.land.element, self.rng, weather=st.weather)
         b.open()
         result = b.fight(fighter.team, [w.mon], controller=self.controller(fighter), wild=True, bag=st.bag,
-                         party=st.party, xp=True)
+                         party=st.party, xp=True, lead=lead)
         st.turns += b.stats["turns"]
         if result == "bonded":
             keeper = st.member(w.mon.element)
@@ -620,11 +653,11 @@ class Game:
         lures = sorted(k for k in R.LURES if R.LURES[k][0] == el)
         sel = 0
         while True:
-            sellable = sum(st.bag.get(k, 0) * R.ITEMS[k]["sell"] for k in ("herb", "shard"))
+            sellable = any(n > 0 for n in st.bag.values())
             opts = [[(WHITE, m["supplies"])], [(el_colour(el), m["lures"].format(**ctx))],
-                    [(WHITE if sellable else DIM, "Sell herbs and shards"), (GOLD, "  +%d coins" % sellable)],
+                    [(WHITE if sellable else DIM, "Sell")],
                     [(GREY, "Leave")]]
-            about = [m["supplies_about"], m["lures_about"].format(**ctx), "Herbs fetch 4 coins, shards 6.",
+            about = [m["supplies_about"], m["lures_about"].format(**ctx), m["sell_about"],
                      "Back to the road."]
             head = [(WHITE, "  " + STORY["market_ask"]), (GOLD, "      You have %d coins." % st.coins)]
             sel = ui.menu(world.draw, head, opts, cols=2, start=sel,
@@ -634,8 +667,10 @@ class Game:
                 self.shop(world, ["remedy", "tonic", "charm", "elixir"])
             elif sel == 1:
                 keeper = st.member(el)
+                have = len(keeper.team) if keeper else 0
                 room = dict(El=R.el_name(el), name=keeper.name if keeper else "",
-                            n=COUNT[len(keeper.team)] if keeper else "", left=COUNT[R.TEAM_MAX - len(keeper.team)] if keeper else "")
+                            n="%s creature%s" % (COUNT[have], "" if have == 1 else "s"),
+                            left=COUNT[R.TEAM_MAX - have])
                 if keeper is None:
                     key = "none"
                 elif len(keeper.team) >= R.TEAM_MAX:
@@ -645,10 +680,30 @@ class Game:
                 ui.say(world.draw, STORY["stall"][key].format(**room), speaker=("STALLKEEPER", GOLD))
                 self.shop(world, lures)
             elif sel == 2:
-                st.coins += sellable
-                st.bag["herb"] = st.bag["shard"] = 0
+                self.sell(world)
             else:
                 return
+
+    def sell(self, world):
+        """Sell from the satchel, one thing at a time: found things at their price, bought things at half."""
+        st, ui = self.st, self.ui
+        sel = 0
+        while True:
+            keys = [k for k, n in st.bag.items() if n > 0]
+            if not keys:
+                return
+            worth = {k: R.ITEMS[k].get("sell") or max(1, R.ITEMS[k]["price"] // 2) for k in keys}
+            opts = [[(WHITE, R.ITEMS[k]["name"].ljust(20)), (GOLD, ("%d" % worth[k]).rjust(2)), (GREY, "  x%d" % st.bag[k])]
+                    for k in keys] + [[(GREY, "Back")]]
+            head = [(WHITE, "  " + STORY["market"]["sell_ask"]), (GOLD, "      You have %d coins." % st.coins)]
+            sel = ui.menu(world.draw, head, opts, cols=3, col_width=32, start=min(sel, len(keys)),
+                          desc=lambda i: [(GREY, "  " + (("Sell one for %d coins." % worth[keys[i]]) if i < len(keys) else "Go back."))],
+                          tag=("sell", keys, st))
+            if sel >= len(keys):
+                return
+            st.bag[keys[sel]] -= 1
+            st.coins += worth[keys[sel]]
+            sound.fx("coin")
 
     def shop(self, world, stock):
         st, ui = self.st, self.ui
@@ -677,7 +732,7 @@ class Game:
     def pack(self, world):
         st, ui = self.st, self.ui
         while True:
-            opts = ["Teams" if st.allies else "Team", "Satchel", "Healing touch"]
+            opts = ["Creatures", "Satchel", "Healing touch"]
             if st.allies:
                 opts.append("Companions")
             if st.has("soil"):
@@ -685,10 +740,11 @@ class Game:
             if st.has("flame") and st.bag.get("shard", 0) >= 2:
                 opts.append("Forge a charm")
             opts.append("Back to the road")
-            pick = opts[ui.menu(world.draw, [(GREY, "  Your pack")], [[(WHITE, o)] for o in opts], cols=2,
+            pick = opts[ui.menu(world.draw, [(GREY, "  Your pack"), (GOLD, "      Coins: %d" % st.coins)],
+                                [[(WHITE, o)] for o in opts], cols=2,
                                 tag=("pack", opts))]
-            if pick in ("Team", "Teams"):
-                m = self.pick_member(world.draw, "Whose team?")
+            if pick == "Creatures":
+                m = self.pick_member(world.draw, "Whose creatures?")
                 if m:
                     self.pack_team(world.draw, m)
             elif pick == "Satchel":
@@ -779,12 +835,13 @@ class Game:
                 uses = T["heal"]["uses"]
                 m = self.pick_member(draw, STORY["heal"]["elixir_who"],
                                      note=lambda m: "%d of %d touches" % (m.heals, uses))
+                you = "_you" if (m and m.is_hero) else ""
                 if m and m.heals >= uses:
-                    ui.say(draw, self.fmt(STORY["heal"]["elixir_full"], trainer=m.name))
+                    ui.say(draw, self.fmt(STORY["heal"]["elixir_full" + you], trainer=m.name))
                 elif m:
                     m.heals = uses
                     st.bag[k] -= 1
-                    ui.say(draw, self.fmt(STORY["heal"]["elixir_done"], trainer=m.name))
+                    ui.say(draw, self.fmt(STORY["heal"]["elixir_done" + you], trainer=m.name))
                 continue
             if k not in ("remedy", "tonic"):
                 continue
@@ -811,23 +868,24 @@ class Game:
             if member is None:
                 return
             ctx = dict(trainer=member.name, their=PRONOUNS[member.data["sex"]][2])
+            say = {k[:-4]: v for k, v in text.items() if k.endswith("_you")} if member.is_hero else text
             if member.heals <= 0:
-                ui.say(draw, self.fmt(text["none"], **ctx))
+                ui.say(draw, self.fmt(say["none"], **ctx))
             else:
                 team = member.team
                 hurt = [m for m in team if m.alive and m.hp < m.max_hp]
                 if not hurt:
-                    ui.say(draw, self.fmt(text["no_need"], **ctx))
+                    ui.say(draw, self.fmt(say["no_need"], **ctx))
                 else:
                     cells = [[(WHITE, m.name.ljust(11)), (GREY, "%d/%d" % (m.hp, m.max_hp))] for m in hurt] + [[(GREY, "Back")]]
-                    j = ui.menu(draw, [(GREY, "  " + self.fmt(text["which"], **ctx))],
+                    j = ui.menu(draw, [(GREY, "  " + self.fmt(say["which"], **ctx))],
                                 cells, cols=2, tag=("heal", hurt))
                     if j < len(hurt):
                         mon = hurt[j]
                         n = min(mon.max_hp - mon.hp, int(round(mon.max_hp * T["heal"]["amount"])))
                         mon.hp += n
                         member.heals -= 1
-                        ui.say(draw, self.fmt(text["done"], creature=mon.name, n=n, **ctx))
+                        ui.say(draw, self.fmt(say["done"], creature=mon.name, n=n, **ctx))
             if not st.allies:
                 return
 
@@ -856,29 +914,15 @@ class Game:
         return self.fmt(STORY["win_specific"][key], p_noun=R.ELEMENTS["noun"][p_el],
                         e_noun=R.ELEMENTS["noun"][lord_el], creature=self.st.team[0].name)
 
-    def trainer_cells(self, member, foe):
-        ok = member.standing > 0
-        word = SHORT_WORD[R.effect_word(R.mult(member.element, foe.element))]
-        return [(WHITE if ok else DIM, member.name.ljust(9)),
-                (el_colour(member.element) if ok else DIM, R.el_name(member.element).ljust(10)),
-                (GREY if ok else DIM, ("%d of %d ready" % (member.standing, len(member.team))).ljust(15)),
-                (GOLD if ok else DIM, word if ok else "")]
-
     def choose_trainer(self, draw, members, foe, head, start=0, why="citadel"):
-        """Pick whose team goes in. Returns the Member. (`why` is only for test robots.)"""
-        def desc(i):
-            m = members[i]
-            if not m.standing:
-                return [(DIM, "  %s's creatures have all fainted." % m.name)]
-            mine = R.effect_word(R.mult(m.element, foe.element))
-            theirs = R.effect_word(R.mult(foe.element, m.element))
-            own = "Your own team. " if m.is_hero else ""
-            return [(GREY, "  %s%s attacks: %s.   %s's %s attacks back: %s." % (
-                own, R.el_name(m.element), mine, foe.name, R.el_name(foe.element), theirs))]
-        i = self.ui.menu(draw, [(GREY, "  " + head)], [self.trainer_cells(m, foe) for m in members],
-                         cols=2, desc=desc, start=start, tag=("trainer", members, foe, why),
-                         blocked=lambda i: None if members[i].standing else "%s has nobody left standing." % members[i].name)
-        return members[i]
+        """Pick whose team goes in, on a page of its own. Returns the Member.
+        No page when there's no choice to make: one master, or only one with anybody standing.
+        (`why` is only for test robots.)"""
+        ready = [m for m in members if m.standing]
+        if len(ready) <= 1:
+            return (ready or members)[0]
+        return choose.master(self.ui, members, foe, head, party=self.st.party, wild=why == "wild",
+                             tag=("trainer", members, foe, why))
 
     def controller(self, member):
         return None if member.is_hero else member.speaker
@@ -901,16 +945,16 @@ class Game:
             lord_team = [R.make_mon(lord_el, level=T["trial"]["lord_level"])]
         else:
             lord_team = R.make_team(lord_el, T["lords"]["levels"][i], T["lords"]["sizes"][i])
-        fighter = st.me
-        if st.allies and not self.trial:
-            fighter = self.pick_fighter(stg.draw, lord_team[0], self.fmt(STORY["who_lord"], **extra), "lord")
+        fighter, lead = st.me, None
+        if not self.trial:
+            fighter, lead = self.pick_side(lord_team[0], self.fmt(STORY["who_lord"], **extra), "lord")
         while True:
             b = Battle(ui, lord_el, self.rng, weather=st.weather)
             b.open()
             for m in lord_team:
                 m.restore()
             result = b.fight(fighter.team, lord_team, controller=self.controller(fighter), foe_owner=lord["name"],
-                             bag=None if self.trial else st.bag, party=st.party, xp=not self.trial)
+                             bag=None if self.trial else st.bag, party=st.party, xp=not self.trial, lead=lead)
             st.turns += b.stats["turns"]
             if result == "win":
                 break
@@ -918,17 +962,20 @@ class Game:
             self.play("lord_wins", battle=b, speakers={"lord": lord_sp}, **extra)
             b.close()
             st.rest()
-            fighter = st.me
+            fighter, lead = st.me, None
             choices = ["Try again"] if world is None else [STORY["lord_fall_back"]]
             if st.allies:
                 choices.append(STORY["lord_ally"])
             pick = self.ui.menu(stg.draw, [(WHITE, "  %s is still in the way." % lord["name"])],
                                 [[(WHITE, c)] for c in choices], cols=1, tag=("after_loss", choices))
             if pick == 1:
-                fighter = self.choose_trainer(stg.draw, st.allies, lord_team[0], "Who takes on %s?" % lord["name"])
+                fighter, lead = self.pick_side(lord_team[0], "Who takes on %s?" % lord["name"], "lord", members=st.allies)
                 ui.say(stg.draw, self.fmt(STORY["ally_offers"][0][1], **extra), speaker=fighter.speaker)
             elif world is not None:
                 return False
+            elif not self.trial:
+                sound.battle()
+                lead = self.choose_lead(st.me, lord_team[0])
 
         if fighter.is_hero:
             b.say(self.lord_comment(b.stats, lord_el), speaker=lord_sp, wait=True)
@@ -954,6 +1001,8 @@ class Game:
             left = R.TEAM_MAX - len(lord_team)
             b.say(STORY["joins_kind" if left else "joins_kind_full"].format(
                 El=R.el_name(lord_el), land=lord["land"], lord=lord["name"], left=COUNT[left]), wait=True)
+        if not self.trial:
+            b.say(STORY["joins_coins"].format(lord=lord["name"], coins=30 + 10 * i), wait=True)
         b.close()
         st.party.append(S.Member(lord_el, lord_team))
         st.coins += 30 + 10 * i
@@ -1112,8 +1161,10 @@ class Game:
         self.play("floor_enter", stage=stg, **extra)
         ui.say(stg.draw, self.fmt(nem["taunt"], **extra), speaker=nem_sp)
         self.play("ally_claims" if ally.standing else "ally_out", stage=stg, speakers=speakers, **extra)
-        if k == 0 and ally.standing:
-            self.play("own_first", stage=stg, speakers=speakers, **extra)
+        if ally.standing:                              # the nemesis answers, and sets the terms
+            ui.say(stg.draw, self.fmt(nem["answer"], **extra), speaker=nem_sp)
+        else:
+            self.play("ally_out_answer", stage=stg, speakers=speakers, **extra)
 
         b = Battle(ui, "hall", self.rng)
         b.open()
@@ -1167,7 +1218,7 @@ class Game:
             for mon in m.team:
                 if mon.alive:
                     mon.hp = max(1, mon.hp - max(1, mon.max_hp // 10))
-            ui.say(draw, self.fmt(STORY["blocked_fail"], trainer=m.name))
+            ui.say(draw, self.fmt(STORY["blocked_fail_you" if m.is_hero else "blocked_fail"], trainer=m.name))
 
     def top_floor(self, cfg):
         st, ui = self.st, self.ui
@@ -1343,7 +1394,9 @@ class Game:
             st.party[0].team = [R.make_mon(hero, level=cfg["hero_level"])]
             self.setup(st)
             sound.music("road")
-            self.play("trial_start", stage=Stage(self.ui, hero))
+            stg = Stage(self.ui, hero)
+            self.play("trial_start", stage=stg)
+            self.play("hero_intro", stage=stg)
             self.lord_encounter(0, st.order[0])
             st.party[1].team = [R.make_mon(st.order[0], level=cfg["hero_level"])]
             for el in st.order[1:]:

@@ -102,7 +102,13 @@ def draw(s, look, hd):
     if style == "veil":                                  # falls down the back, to the ground
         s.polygon([(12, 8), (28, 8), (33, 30), (36, 54), (4, 54), (7, 30)], (244, 244, 252))
         s.polygon([(13, 10), (27, 10), (31, 30), (33, 52), (7, 52), (9, 30)], (226, 230, 244))
-    if look.get("scarf_tail", True):
+    cape = darker(coat, 0.55) if look.get("cape") else None
+    if cape:                                             # a long cape, wide at the hem
+        s.polygon([(10, 25), (30, 25), (38, 52), (2, 52)], cape)
+        s.polygon([(10, 25), (13, 25), (6, 52), (2, 52)], darker(cape, 0.7))
+        s.polygon([(27, 25), (30, 25), (38, 52), (34, 52)], darker(cape, 0.7))
+        s.line(2, 52, 38, 52, scarf)
+    if look.get("scarf_tail", True) and not cape:
         s.polygon([(24, 25), (35, 22), (40, 25), (34, 27), (38, 31), (28, 29)], scarf_sh)
     # legs + boots
     s.rect(15, 44, 18, 50, legs)
@@ -137,6 +143,11 @@ def draw(s, look, hd):
     s.rect(30, 34, 32, 35, trim)
     s.ellipse(26.5, 38.5, 1.7, 1.7, skin)
     # scarf, neck, head
+    if cape:                                             # and a high collar
+        s.polygon([(11, 27), (9, 18), (16, 25)], cape)
+        s.polygon([(29, 27), (31, 18), (24, 25)], cape)
+        s.line(9, 18, 16, 25, scarf)
+        s.line(31, 18, 24, 25, scarf)
     s.ellipse(20, 25.5, 6.2, 2.3, scarf_sh)
     s.ellipse(23.5, 27.5, 1.7, 1.7, darker(scarf, 0.8))
     s.rect(18, 22, 22, 24, darker(skin, 0.88))

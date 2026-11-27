@@ -308,6 +308,15 @@ def current():
     return _S.now
 
 
+def battle():
+    """A fight is coming: start its music now, remembering what to go back to afterwards.
+    (The Citadel keeps its own theme through its fights.) Returns the theme to go back to."""
+    if _S.now not in ("battle", "citadel"):
+        _S.before = _S.now
+        music("battle")
+    return _S.now if _S.now == "citadel" else getattr(_S, "before", None)
+
+
 def fx(name):
     """Play an effect once, over the music."""
     if _S.on and LEVELS[_S.level][1] > 0 and _open(name):
