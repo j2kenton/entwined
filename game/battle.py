@@ -8,6 +8,7 @@ import random
 
 from . import rules as R
 from .art import backdrops, creatures
+from .engine import sound
 from .engine.canvas import darker, draw_mini, mini_width, mix
 from .engine.ui import DIM, GREY, RED, WHITE, message_rows
 
@@ -249,6 +250,9 @@ class Battle:
 
     def open(self, frames=16):
         self.ui.battle = self
+        self.music_before = sound.current()
+        if self.music_before != "citadel":         # the Citadel keeps its own music through its fights
+            sound.music("battle")
         self.reveal = 0.0
         self.wait(frames, lambda i: setattr(self, "reveal", (i + 1) / frames))
         self.reveal = 1.0
@@ -257,11 +261,13 @@ class Battle:
         self.wait(frames, lambda i: setattr(self, "reveal", 1 - (i + 1) / frames))
         self.reveal = 0.0
         self.ui.battle = None
+        sound.music(getattr(self, "music_before", None))
 
     # =====================================================================
     # Creatures coming and going
     # =====================================================================
     def send_enemy(self, mon, text=None):
+        sound.fx("send")
         e = self.enemy
         e.mon, e.sink, e.dx, e.dy = mon, 0, 0, 0
         e.hp_shown = e.hp_target = mon.ratio
@@ -275,6 +281,7 @@ class Battle:
         self.wait(18)
 
     def send_player(self, mon, text=None):
+        sound.fx("send")
         p = self.player
         p.mon, p.sink, p.dy = mon, 0, 0
         p.hp_shown = p.hp_target = mon.ratio
@@ -303,6 +310,7 @@ class Battle:
         p.on, p.dx = False, 0
 
     def faint(self, side):
+        sound.fx("faint")
         side.flash = 8
         self.wait(8)
         depth = 38 if side.far else 50
@@ -651,8 +659,10 @@ class Battle:
             if not res["hit"]:
                 if mine:
                     self.stats["misses"] += 1
+                sound.fx("miss")
                 self.say("But it missed!")
                 return
+            sound.fx("crit" if res["crit"] else "hit")
             self.land(tgt)
             self.wait(16)
             if res["boosted"]:
@@ -673,19 +683,23 @@ class Battle:
         elif mv.kind == "guard":
             if mine:
                 self.stats["guards"] += 1
+            sound.fx("guard")
             self.anim_guard(att, cols)
             self.say("%s braces itself!" % user.name)
         elif mv.kind == "heal":
+            sound.fx("heal")
             self.anim_rise(att, HEAL_SPARKS)
             self.land(att)
             self.wait(10)
             self.say("%s recovered %d HP!" % (user.name, res["heal"]) if res["heal"]
                      else "But %s is already at full health!" % user.name)
         elif mv.kind == "boost":
+            sound.fx("boost")
             self.anim_rise(att, cols, flash=True)
             self.say("%s can't power up any further!" % user.name if res["no_effect"]
                      else "%s is powering up! Its next attack will hit harder." % user.name)
         elif mv.kind == "hinder":
+            sound.fx("cloud")
             self.anim_cloud(att, tgt, mv.tint or cols)
             self.say("%s's accuracy can't fall any lower!" % target.name if res["no_effect"]
                      else "%s gets in %s's eyes! Its accuracy fell!" % (mv.what or "It", target.name))
@@ -699,6 +713,7 @@ class Battle:
                     if m is self.player.mon:
                         self.land(self.player)
                         self.burst(PLAYER_C, PLAIN_SPARKS, 20)
+                    sound.fx("level")
                     self.say("%s grew to level %d!" % (m.name, what), hold=12)
                 else:
                     self.say("%s learned %s!" % (m.name, what.name), hold=14)
@@ -789,14 +804,17 @@ class Battle:
                 self.bag[key] -= 1
                 if not who.is_hero:                        # it's their kind of creature: they speak up
                     self.say(R.load("story")["lure_mine"], speaker=who.speaker, hold=16)
+                sound.fx("lure")
                 self.say("%s out a lure to %s..." % ("You hold" if who.is_hero else who.name + " holds", e.name), hold=10)
                 self.anim_cloud(self.player, self.enemy, BOND_SPARKS)
                 self.wait(10)
                 if self.rng.random() < R.bond_chance(e, R.LURES[key][2]):
+                    sound.fx("join")
                     self.anim_rise(self.enemy, BOND_SPARKS, flash=True, frames=34)
                     self.say("%s eats from %s hand. It trusts %s!" % (
                         e.name, "your" if who.is_hero else who.name + "'s", "you" if who.is_hero else who.name), wait=True)
                     return "bonded"
+                sound.fx("refuse")
                 self.say("%s snatches the lure and backs away." % e.name)
             for user, mv, target in order:
                 if user.alive and target.alive:

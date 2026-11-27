@@ -11,6 +11,7 @@ until it's done:
 import time
 from collections import deque
 
+from . import sound
 from .display import BOX_COLS
 from .term import size_message, term_size
 
@@ -125,6 +126,10 @@ class UI:
                 continue
             if k == "tester":
                 self.want_test = bool(self.tester) and not self.headless
+                continue
+            if k == "sound":                       # V: normal, quiet, off
+                sound.cycle()
+                sound.fx("select")
                 continue
             self.pending.append(k)
 
@@ -259,6 +264,7 @@ class UI:
                 more = (self.tick // 8) % 2 == 0
                 self.frame(draw(), message_rows(text, shown, speaker, more=more))
                 if self.advanced():
+                    sound.fx("next")
                     return
         else:
             for _ in range(hold):
@@ -303,6 +309,8 @@ class UI:
             self.frame(draw(), rows)
             for k in self.take():
                 note = None
+                if k in ("left", "right", "up", "down"):
+                    sound.fx("move")
                 col, row = sel % cols, sel // cols
                 if k == "left":
                     col = (col - 1) % cols
@@ -315,7 +323,9 @@ class UI:
                 elif k == "enter":
                     msg = blocked(sel) if blocked else None
                     if not msg:
+                        sound.fx("select")
                         return sel
+                    sound.fx("deny")
                     note = msg
                     continue
                 last_row = (n - 1) // cols
@@ -358,6 +368,8 @@ class UI:
             self.frame(draw(), out)
             for k in self.take():
                 note = None
+                if k in ("left", "right", "up", "down"):
+                    sound.fx("move")
                 if k == "left":
                     c = (c - 1) % len(rows[r])
                 elif k == "right":
@@ -371,6 +383,8 @@ class UI:
                 elif k == "enter":
                     msg = blocked(r, c) if blocked else None
                     if not msg:
+                        sound.fx("select")
                         return r, c
+                    sound.fx("deny")
                     note = msg
 

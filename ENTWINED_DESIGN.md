@@ -482,6 +482,8 @@ Decided together after the first full journey. These replace the matching rules 
 
 **Eyes.** Every creature has the same kind of eye: dark, with a small highlight. No solid-coloured eyes, glowing eyes or coloured rims: they read as mistakes. A creature that needs a dark head gets a paler face so the eye still shows.
 
+**Sound.** Five looping themes (title, road, battle, Citadel, wedding) and about two dozen effects, all written as notes in `game/engine/sound.py` and turned into sound files on first run. Windows plays them with what it has built in, music and effects together; other systems are silent for now. The Citadel keeps its own theme through its fights; after the last fight there is silence until the wedding. None of it has been heard by its author, only checked to play.
+
 **The walking map** is drawn at sixteen pixels to a tile in HD, the size classic handheld games used, from small hand-made pixel grids (`game/art/tiles.py`): a person who is plainly a person from all four sides, a house for the inn with its name over the door, a striped market stall, a signpost, a chest, plants, and for each land its own trees or rocks, ground and long growth. The first version was drawn at half that detail and nothing on it could be recognised.
 
 **Dark versions** are not the same drawing in darker colours. Each keeps its black eyes but glares from under heavy lids, loses its blush and its smile, and has changes of its own: barbs for bobbles, thorns for leaves, horns for a curl, spikes on a shell, a splintered crown, a blighted leaf, and so on. Everything added is in the creature's own colours, dulled. Nothing white or bright pink sits on top: that read as stuck on.

@@ -6,6 +6,7 @@ Options:
     --sixel            force HD pictures drawn with real pixels (Sixel)
     --blocks           force retro pictures drawn with coloured text blocks
     --trial            go straight to the quick taste (about ten minutes)
+    --quiet            no music or sound effects (in the game, V turns the sound down, then off)
     --test             tester's dials: press T at any time to raise or lower levels,
                        health, healing touches and coins, for one trainer, for
                        everyone, or for the creature facing you
@@ -16,11 +17,12 @@ is left alone):
     --hero NAME --from citadel   start at the foot of the Citadel
     --hero NAME --from top       start at the Citadel's final floor
 """
+import os
 import sys
 
 from . import rules as R
 from . import state as S
-from .engine import sixel, term
+from .engine import sixel, sound, term
 from .engine.display import Display
 from .engine.ui import UI, Quit
 from .story import STORY, Game
@@ -114,6 +116,10 @@ def main(argv):
     if where:
         preview_state(find_hero(hero or "wave"), where)
     term.prepare_stdout()
+    if "--quiet" not in argv:
+        if os.name == "nt" and sound.missing():
+            print("Getting the music ready (first time only, a few seconds)...", flush=True)
+        sound.start()
     display = make_display(argv)
     keys = term.Keys()
     term.enter_screen(sys.stdout)
@@ -130,6 +136,7 @@ def main(argv):
     except (Quit, KeyboardInterrupt):
         pass
     finally:
+        sound.close()
         keys.close()
         term.leave_screen(sys.stdout)
     print("Thanks for playing Entwined!")

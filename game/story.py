@@ -17,6 +17,7 @@ from . import state as S
 from . import world as W
 from .art import backdrops, creatures, trainers
 from .battle import Battle, el_colour, sparks
+from .engine import sound
 from .engine.canvas import Canvas, darker, draw_text, mix, text_width
 from .engine.ui import DIM, GOLD, GREY, INNER, WHITE, wrap
 
@@ -285,6 +286,7 @@ class Game:
     # =====================================================================
     def title_menu(self):
         st = Stage(self.ui, "title", title=("ENTWINED", 2, 20, (255, 214, 120)))
+        sound.music("title")
         m = STORY["menu"]
         journal = S.load(self.save_path)
         while True:
@@ -470,6 +472,7 @@ class Game:
             world.facing = "left"
         world.title = lord["land"].upper()
         world.pilot = self.pilot
+        sound.music("road")
         self.spawn_wild(world)
         rows = self.hud(world)
         extra = dict(lord=lord["name"], land=lord["land"], land_element=R.el_name(el), master=R.el_name(el) + "master")
@@ -497,6 +500,7 @@ class Game:
                 if self.ask(world.draw, STORY["inn_ask"], ["Rest", "Not now"]) == 0:
                     st.pos = land.inn_door
                     self.new_day(world)
+                    sound.fx("rest")
                     ui.say(world.draw, STORY["inn_done"])
                     self.forecast(world)
             elif kind == "market":
@@ -560,6 +564,7 @@ class Game:
                 ui.say(world.draw, found["full"])
                 return
             ui.say(world.draw, found[kind])
+        sound.fx("pickup")
         world.picked.add(pos)
         st.here["picked"] = [list(p) for p in world.picked]
 
@@ -604,6 +609,7 @@ class Game:
             world.x, world.y = st.pos
             world.slide = None
             self.spawn_wild(world)
+            sound.fx("lose")
             self.ui.say(world.draw, STORY["blackout"])
 
     def market(self, world):
@@ -666,6 +672,7 @@ class Game:
                 return
             st.coins -= R.ITEMS[stock[sel]]["price"]
             st.add(stock[sel])
+            sound.fx("coin")
 
     def pack(self, world):
         st, ui = self.st, self.ui
@@ -931,6 +938,7 @@ class Game:
                       ally_they=PRONOUNS[fighter.data["sex"]][0], ally_s="s", **extra)
         self.play("tell_quest", battle=b, **extra)
         b.say(lord["join"], speaker=lord_sp, wait=True)
+        sound.fx("fanfare")
         b.banner = (self.fmt(STORY["joined"], **extra), (255, 200, 90))
         for _ in range(3):
             b.burst((b.fx.uniform(20, 80), b.fx.uniform(10, 30)), sparks(lord_el) + sparks(self.hero), 30)
@@ -983,6 +991,7 @@ class Game:
         """The climb. True once the top is won; False if you went back to a rest point in the lands."""
         ui = self.ui
         cfg = T["trial"] if self.trial else T["citadel"]
+        sound.music("citadel")
         if not self.st.climbing:
             st = self.st
             st.stage = st.reached = 6
@@ -1000,12 +1009,14 @@ class Game:
                 continue
             cleared = self.floor(k, cfg) if k < 5 else self.top_floor(cfg)
             if cleared:
+                sound.fx("clear")
                 if k < 5 and not self.trial:
                     self.blocked_way(ways[k])
                     self.breather()
                 st.floor = k + 1
                 continue
             st.losses += 1
+            sound.fx("lose")
             hall = Stage(ui, "hall")
             hall.show(("trainer", self.hero_data["look"]))
             here = st.key()
@@ -1150,6 +1161,7 @@ class Game:
                         desc=lambda i: [(GREY, "  " + text["scene"])], tag=("blocked", st.party, answer))
             m = st.party[i]
             if m.element == answer:
+                sound.fx("clear")
                 ui.say(draw, text["done"])
                 return
             for mon in m.team:
@@ -1216,6 +1228,7 @@ class Game:
     def outro(self):
         st = self.st
         speakers = {"nemesis": self.villain(self.hero)}
+        sound.music(None)                              # the fight is over: let it be quiet
         if st.allies:
             speakers.update(ally=st.allies[-1].speaker, ally2=st.allies[0].speaker)
         self.play("outro", stage=Stage(self.ui, "rooftop"), speakers=speakers)
@@ -1288,6 +1301,7 @@ class Game:
         dark = Canvas(100, 60, scale=ui.S, fill=(0, 0, 0))
         ui.take()
         ui.pause(lambda: dark, 26, [])
+        sound.music("wedding")
         self.last_scene = self.wedding_scene()
         ui.pause(lambda: self.last_scene, 60, [])
         ui.take()
@@ -1328,6 +1342,7 @@ class Game:
             cfg = T["trial"]
             st.party[0].team = [R.make_mon(hero, level=cfg["hero_level"])]
             self.setup(st)
+            sound.music("road")
             self.play("trial_start", stage=Stage(self.ui, hero))
             self.lord_encounter(0, st.order[0])
             st.party[1].team = [R.make_mon(st.order[0], level=cfg["hero_level"])]

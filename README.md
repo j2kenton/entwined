@@ -57,7 +57,12 @@ The title screen offers:
 | Enter / Space | Talk, look, confirm |
 | Enter / Down | Move the text along |
 | M | Open your pack: team, satchel, companions |
+| V | Sound: normal, quiet, off |
 | Esc | Leave (it asks first) |
+
+### Sound
+
+On Windows the game has music and sound effects. It makes them itself the first time it runs (a few seconds), so there's still nothing to install. Press **V** to turn the sound down, then off; start with `play --quiet` for no sound at all. On Mac and Linux the game is silent for now.
 
 ### Pictures: HD or retro
 

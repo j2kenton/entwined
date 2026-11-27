@@ -31,13 +31,13 @@ def prepare_stdout():
 
 class Keys:
     """Non-blocking key reader for Windows (msvcrt) and Mac/Linux (termios).
-    poll() returns names: up, down, left, right, enter, menu, quit, bigger, smaller, tester."""
+    poll() returns names: up, down, left, right, enter, menu, quit, bigger, smaller, tester, sound."""
 
     PLAIN = {"\r": "enter", "\n": "enter", " ": "enter", "\x1b": "quit",
              "w": "up", "s": "down", "a": "left", "d": "right",
              "W": "up", "S": "down", "A": "left", "D": "right",
              "+": "bigger", "=": "bigger", "-": "smaller", "_": "smaller",
-             "m": "menu", "M": "menu", "\t": "menu", "t": "tester", "T": "tester"}
+             "m": "menu", "M": "menu", "\t": "menu", "t": "tester", "T": "tester", "v": "sound", "V": "sound"}
 
     def __init__(self):
         self.win = os.name == "nt"
