@@ -23,6 +23,7 @@ from .engine.ui import DIM, GOLD, GREY, INNER, WHITE, wrap
 STORY = R.load("story")
 T = R.TUNING
 PRONOUNS = {"f": ("she", "her", "her"), "m": ("he", "him", "his")}
+COUNT = ["none", "one", "two", "three", "four", "five"]
 SHORT_WORD = {"strong": "strong", "slightly strong": "sl. strong", "even": "even",
               "slightly weak": "sl. weak", "weak": "weak"}
 
@@ -573,6 +574,14 @@ class Game:
 
     def wild_battle(self, world, w):
         st = self.st
+        told = st.here.setdefault("told", [])
+        if w.mon.element not in told:
+            told.append(w.mon.element)
+            keeper = st.member(w.mon.element)
+            key = "stranger" if keeper is None else ("yours" if keeper.is_hero else "theirs")
+            self.ui.say(world.draw, STORY["wild_note"][key].format(
+                El=R.el_name(w.mon.element), name=keeper.name if keeper else "",
+                them=PRONOUNS[keeper.data["sex"]][1] if keeper else ""))
         fighter = self.pick_fighter(world.draw, w.mon, self.fmt(STORY["who_wild"], creature=w.mon.name), "wild")
         b = Battle(self.ui, world.land.element, self.rng, weather=st.weather)
         b.open()
@@ -618,6 +627,16 @@ class Game:
             if sel == 0:
                 self.shop(world, ["remedy", "tonic", "charm", "elixir"])
             elif sel == 1:
+                keeper = st.member(el)
+                room = dict(El=R.el_name(el), name=keeper.name if keeper else "",
+                            n=COUNT[len(keeper.team)] if keeper else "", left=COUNT[R.TEAM_MAX - len(keeper.team)] if keeper else "")
+                if keeper is None:
+                    key = "none"
+                elif len(keeper.team) >= R.TEAM_MAX:
+                    key = "full_you" if keeper.is_hero else "full_other"
+                else:
+                    key = "room_you" if keeper.is_hero else "room_other"
+                ui.say(world.draw, STORY["stall"][key].format(**room), speaker=("STALLKEEPER", GOLD))
                 self.shop(world, lures)
             elif sel == 2:
                 st.coins += sellable
@@ -924,6 +943,9 @@ class Game:
         if not self.trial:
             gift = STORY["gifts"][lord_el]
             b.say(self.fmt(STORY["gift_joins"], lord=lord["name"], gift=gift[0].lower(), what=gift[1]), wait=True)
+            left = R.TEAM_MAX - len(lord_team)
+            b.say(STORY["joins_kind" if left else "joins_kind_full"].format(
+                El=R.el_name(lord_el), land=lord["land"], lord=lord["name"], left=COUNT[left]), wait=True)
         b.close()
         st.party.append(S.Member(lord_el, lord_team))
         st.coins += 30 + 10 * i
@@ -1080,7 +1102,7 @@ class Game:
         ui.say(stg.draw, self.fmt(nem["taunt"], **extra), speaker=nem_sp)
         self.play("ally_claims" if ally.standing else "ally_out", stage=stg, speakers=speakers, **extra)
         if k == 0 and ally.standing:
-            self.play("own_first", stage=stg, **extra)
+            self.play("own_first", stage=stg, speakers=speakers, **extra)
 
         b = Battle(ui, "hall", self.rng)
         b.open()

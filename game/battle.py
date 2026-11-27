@@ -552,10 +552,10 @@ class Battle:
         el = R.el_name(wild.element)
         who = self.keeper(wild)
         if who is None:
-            return "It won't come near. Only a %smaster could win its trust." % el
+            return "It won't come near. Only a %smaster could win its trust, and none travels with you." % el
         if len(who.team) >= R.TEAM_MAX:
-            return "%s already %s %d creatures. Any more and they'd turn on each other." % (
-                "You" if who.is_hero else who.name, "keep" if who.is_hero else "keeps", R.TEAM_MAX)
+            return "%s already %s five, the most anyone can. Let one go from your pack to make room." % (
+                "You" if who.is_hero else who.name, "keep" if who.is_hero else "keeps")
         if not R.lures_for(wild.element, self.bag or {}):
             return "You've no %s lure to offer. They're sold where %s creatures live." % (el, el)
         return None
@@ -787,6 +787,8 @@ class Battle:
                 key = action[1]
                 who = self.keeper(e)
                 self.bag[key] -= 1
+                if not who.is_hero:                        # it's their kind of creature: they speak up
+                    self.say(R.load("story")["lure_mine"], speaker=who.speaker, hold=16)
                 self.say("%s out a lure to %s..." % ("You hold" if who.is_hero else who.name + " holds", e.name), hold=10)
                 self.anim_cloud(self.player, self.enemy, BOND_SPARKS)
                 self.wait(10)
