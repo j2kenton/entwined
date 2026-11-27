@@ -27,7 +27,7 @@
    "priority": 1
   },
   "rest": {
-   "name": "REST",
+   "name": "CATNAP",
    "element": null,
    "kind": "heal",
    "pp": 2,
@@ -59,7 +59,7 @@
    "pp": 4
   },
   "smokescreen": {
-   "name": "SMOKESCREEN",
+   "name": "SOOT CLOUD",
    "element": "flame",
    "kind": "hinder",
    "pp": 4,
@@ -80,10 +80,10 @@
      150
     ]
    ],
-   "what": "Smoke"
+   "what": "Soot"
   },
   "vine_lash": {
-   "name": "VINE LASH",
+   "name": "BRAMBLE LASH",
    "element": "root",
    "kind": "attack",
    "power": 40,
@@ -92,7 +92,7 @@
    "anim": "stream"
   },
   "headbutt": {
-   "name": "HEADBUTT",
+   "name": "SHOVE",
    "element": null,
    "kind": "attack",
    "power": 30,
@@ -125,7 +125,7 @@
    "anim": "stream"
   },
   "peck": {
-   "name": "PECK",
+   "name": "BEAK JAB",
    "element": null,
    "kind": "attack",
    "power": 30,
@@ -135,7 +135,7 @@
    "anim": "strike"
   },
   "tailwind": {
-   "name": "TAILWIND",
+   "name": "UPDRAFT",
    "element": "breeze",
    "kind": "boost",
    "pp": 4
@@ -184,14 +184,14 @@
    "anim": "strike"
   },
   "harden": {
-   "name": "HARDEN",
+   "name": "STONE SKIN",
    "element": "soil",
    "kind": "guard",
    "pp": 5,
    "priority": 1
   },
   "mud_shot": {
-   "name": "MUD SHOT",
+   "name": "MUD FLING",
    "element": "soil",
    "kind": "hinder",
    "pp": 4,
@@ -240,7 +240,7 @@
    "pp": 4
   },
   "flash": {
-   "name": "FLASH",
+   "name": "DAZZLE",
    "element": "lightning",
    "kind": "hinder",
    "pp": 4,
@@ -343,7 +343,7 @@
    "anim": "dash"
   },
   "heavy_flame": {
-   "name": "ERUPTION",
+   "name": "MAGMA BURST",
    "element": "flame",
    "kind": "attack",
    "power": 58,
@@ -423,7 +423,7 @@
    "anim": "dash"
   },
   "heavy_lightning": {
-   "name": "THUNDERCLAP",
+   "name": "STORM CRASH",
    "element": "lightning",
    "kind": "attack",
    "power": 58,
@@ -443,7 +443,7 @@
    "anim": "strike"
   },
   "slam": {
-   "name": "SLAM",
+   "name": "WALLOP",
    "element": null,
    "kind": "attack",
    "power": 34,
@@ -792,7 +792,7 @@
   },
   "whirlet": {
    "name": "WHIRLET",
-   "shadow": "HOWLET",
+   "shadow": "SQUALLET",
    "element": "breeze",
    "role": "quick",
    "hp": 42,
@@ -931,7 +931,7 @@
    ]
   },
   "rumblehorn": {
-   "name": "RUMBLEHORN",
+   "name": "RUMBLEHOOF",
    "shadow": "DOOMHORN",
    "element": "lightning",
    "role": "sturdy",
@@ -971,12 +971,12 @@
   "df": 13,
   "spd": 15,
   "names": {
-   "wave": "STORMFIN",
-   "flame": "SCALDKIT",
-   "root": "CHARTHORN",
-   "breeze": "THORNWING",
+   "wave": "SQUALLHORN",
+   "flame": "SCALDFIN",
+   "root": "BRIARBACK",
+   "breeze": "GALEWOOD",
    "soil": "DUSTWHIRL",
-   "lightning": "FULGURLAMB"
+   "lightning": "FULGURITE"
   }
  },
  "starter": {
@@ -1035,10 +1035,10 @@
    "price": 10,
    "text": "In battle: your creature's next attack hits half again as hard."
   },
-  "lure": {
-   "name": "Lure",
-   "price": 8,
-   "text": "In battle: a wild creature of your own nature is much easier to befriend."
+  "elixir": {
+   "name": "Elixir",
+   "price": 18,
+   "text": "Restores every use of one master's healing touch."
   },
   "herb": {
    "name": "Herb",

@@ -5,10 +5,14 @@
   "growth_per_level": 0.04,
   "weather_boost": 1.15,
   "wild_levels": [[3, 5], [5, 7], [7, 9], [9, 11], [11, 13], [13, 15]],
-  "lords": {"levels": [7, 10, 11, 14, 14], "sizes": [4, 4, 3, 3, 2]},
+  "lords": {"levels": [7, 9, 11, 13, 14], "sizes": [1, 2, 3, 4, 5]},
   "expected": {"levels": [8, 10, 12, 14, 16], "team": [2, 3, 3, 4, 4]},
-  "citadel": {"ally_level": 16, "nemesis_level": 19, "nemesis_size": 2, "sixth_level": 20,
-              "final_level": 19, "final_size": 3, "hybrid_level": 22},
+  "citadel": {"nemesis_level": 16, "nemesis_sizes": [1, 2, 3, 4, 5], "sixth_level": 17,
+              "final_level": 17, "final_size": 5, "hybrid_level": 18},
+  "heal": {"uses": 3, "amount": 0.5},
+  "lures": [{"name": "Plain", "price": 6, "pull": 0.6},
+            {"name": "Sweet", "price": 12, "pull": 0.8},
+            {"name": "Rich", "price": 20, "pull": 1.0}],
   "trial": {"hero_level": 12, "lord_level": 18, "nemesis_level": 8, "sixth_level": 8,
             "final_level": 9, "hybrid_level": 17}
 }

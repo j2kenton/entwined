@@ -6,6 +6,9 @@ Options:
     --sixel            force HD pictures drawn with real pixels (Sixel)
     --blocks           force retro pictures drawn with coloured text blocks
     --trial            go straight to the quick taste (about ten minutes)
+    --test             tester's dials: press T at any time to raise or lower levels,
+                       health, healing touches and coins, for one trainer, for
+                       everyone, or for the creature facing you
 
 For trying out later parts without playing up to them (your saved journey
 is left alone):
@@ -62,34 +65,38 @@ def preview_state(hero, where):
         stage = int(where)
     st = S.State(hero)
     joined = min(stage, 6) - 1                      # Lords already won over
-    if stage > 0:
-        i = min(stage - 1, 4)
-        st.party[0].team = R.make_team(hero, T["expected"]["levels"][i] - 1, T["expected"]["team"][i])
+    c = T["citadel"]
+    if stage >= 6:                                  # a party that has trained for the Citadel
+        st.party[0].team = R.make_team(hero, c["nemesis_level"], 5)
+    elif stage > 0:
+        st.party[0].team = R.make_team(hero, T["expected"]["levels"][stage - 1] - 1, T["expected"]["team"][stage - 1])
     for k in range(max(0, joined)):
         el = st.order[k]
-        st.party.append(S.Member(el, R.make_team(el, T["lords"]["levels"][k], T["lords"]["sizes"][k])))
-    st.stage = stage
-    st.bag = {"remedy": 3, "tonic": 2, "charm": 2, "lure": 1}
+        if stage >= 6:
+            team = R.make_team(el, c["nemesis_level"] - 1, 4)
+        else:
+            team = R.make_team(el, T["expected"]["levels"][stage - 1] - 2, min(3, k + 2))
+        st.party.append(S.Member(el, team))
+    st.stage = st.reached = stage
+    st.bag = {"remedy": 3, "tonic": 2, "charm": 2, "elixir": 1}
     st.coins = 40 + 20 * stage
     if where == "top":
         st.floor = 5
-        st.pos = (0, 0)
-        top = max(m.level for m in st.team)
-        for ally in st.allies:
-            for mon in ally.team:
-                mon.set_level(max(mon.level, top))
+        st.climbing = True
     return st
 
 
 def play(ui, argv):
     g = Game(ui)
+    if "--test" in argv:
+        ui.tester = g.tester_options
     hero = option(argv, "--hero")
     where = option(argv, "--from")
     if where and not hero:
         raise SystemExit("--from needs --hero as well")
     if where:
         g.no_save = True
-        g.play_journey(preview_state(find_hero(hero), where), fresh=False)
+        g.play_journey(S.Journal(), preview_state(find_hero(hero), where))
     elif "--trial" in argv:
         g.play_trial(find_hero(hero) if hero else g.choose_hero())
     else:

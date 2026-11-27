@@ -21,7 +21,7 @@ TUNING = load("tuning")
 
 ORDER = ELEMENTS["order"]
 SPECIES = CREATURES["species"]
-ITEMS = CREATURES["items"]
+ITEMS = dict(CREATURES["items"])
 TEAM_MAX = 5
 _EXC = {(e["attacker"], e["defender"]): e["mult"] for e in ELEMENTS["exceptions"]}
 _PATTERN = {int(k): v for k, v in ELEMENTS["pattern"].items()}
@@ -36,6 +36,26 @@ def mult(att, dfn):
     if att == dfn:
         return ELEMENTS["same"]
     return _PATTERN[(ORDER.index(dfn) - ORDER.index(att)) % 6]
+
+
+def el_name(element):
+    return ELEMENTS["names"][element]
+
+
+# Lures: one kind per nature, in three grades. The tastier, the likelier it works.
+LURES = {}
+for _el in ORDER:
+    for _g, _lure in enumerate(TUNING["lures"]):
+        _key = "lure_%s_%d" % (_el, _g + 1)
+        LURES[_key] = (_el, _g + 1, _lure["pull"])
+        ITEMS[_key] = {"name": "%s %s lure" % (_lure["name"], el_name(_el)), "price": _lure["price"],
+                       "text": "Offer to a weakened wild %s creature. Tastier lures work more often. "
+                               "Gone once offered." % el_name(_el)}
+
+
+def lures_for(element, bag):
+    """The lures in a satchel that suit this nature, plainest first."""
+    return [k for k in sorted(LURES) if LURES[k][0] == element and bag.get(k, 0) > 0]
 
 
 def effect_word(m):
@@ -59,10 +79,6 @@ def land_order(hero_element):
     """The other five elements, from the one this hero finds easiest to hardest."""
     others = [e for e in ORDER if e != hero_element]
     return sorted(others, key=lambda o: -(mult(hero_element, o) / mult(o, hero_element)))
-
-
-def el_name(element):
-    return ELEMENTS["names"][element]
 
 
 # =========================================================================
@@ -235,11 +251,12 @@ def make_team(element, level, size, variant="normal"):
 
 
 def make_hybrid(hero_element, level):
-    """A nemesis's bred creature: the hero's own element plus the one that beats it.
-    It first appears in the form that beats the hero."""
+    """A nemesis's bred creature: the hero's own element plus the one that beats it,
+    in the body of the hero's sweetheart's creature. It first appears in the form
+    that beats the hero."""
     h = CREATURES["hybrid"]
     beater = beater_of(hero_element)
-    m = Mon(CREATURES["starter"][beater], level, "hybrid")
+    m = Mon(HEROES[hero_element]["sweetheart"]["creature"], level, "hybrid")
     m.name = h["names"][hero_element]
     m.base = (h["hp"], h["atk"], h["df"], h["spd"])
     m.moves = [MOVES[k] for k in h["moves"]]
@@ -328,9 +345,10 @@ def use_item(key, mon):
     return None
 
 
-def bond_chance(wild):
-    """How likely a wild creature of your own nature is to accept you."""
-    return min(0.95, 0.2 + 0.65 * (1 - wild.ratio) + (0.3 if wild.lured else 0.0))
+def bond_chance(wild, pull):
+    """How likely a wild creature is to take a lure and join: the nearer it is to
+    fainting, and the tastier the lure (`pull`), the better the odds."""
+    return min(0.95, 0.05 + pull * (1 - wild.ratio) ** 1.5)
 
 
 def expected(user, target, move):

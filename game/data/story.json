@@ -6,19 +6,19 @@
     ],
     [
       "narr",
-      "As you grow, creatures of your own nature come to trust you. Up to five of them. Never more, and never any other kind."
+      "As you grow, creatures of your own nature come to trust you. No other kind ever will."
     ],
     [
       "narr",
-      "That's the law of the six lands. Or it was."
+      "And five is as many as anyone can keep. Take a sixth, and they turn on each other. Everyone who has tried it knows."
     ],
     [
       "narr",
-      "From the Citadel at the heart of the Rift, six outcasts have always raided the lands, and the lands have always held them off."
+      "Nobody made these rules. It's simply how it has always gone."
     ],
     [
       "narr",
-      "Lately the raids are winning. Nobody knows why."
+      "Between the six lands, on the edge of the Rift, stands the Citadel. It belongs to none of them, and its Master answers to no one."
     ]
   ],
   "choose_hero": "Whose story is this?",
@@ -33,14 +33,21 @@
     ],
     [
       "narr",
-      "Then {sweetheart} vanished. The same night, the Citadel's banners were seen on the border.",
+      "{sweetheart} is Master of the Citadel. {Sw_they} earned it the long way, and {sw_their} {sw_creature} has never once lost to {hero}'s {creature}.",
+      [
+        "sweetheart"
+      ]
+    ],
+    [
+      "narr",
+      "Then word came down the road: the Citadel has fallen. Six Masters who answer to nobody have taken it, and {sweetheart} was inside.",
       [
         "hero"
       ]
     ],
     [
       "narr",
-      "{hero} knows who leads the {element} raiders: {nem_first}, the one the lands now call {nemesis}. They grew up side by side, too alike to stay friends, and both in love with {sweetheart}.",
+      "{hero} knows who leads them: {nem_first}. They grew up side by side, too alike to stay friends, and both in love with {sweetheart}.",
       [
         "hero",
         "nemesis"
@@ -48,14 +55,7 @@
     ],
     [
       "narr",
-      "{sweetheart} never thought much of either of them. {Sw_their} {sw_element} creature beat them both, every time.",
-      [
-        "sweetheart"
-      ]
-    ],
-    [
-      "narr",
-      "{hero} is certain {nem_first} has taken {sw_them}. The road to the Citadel crosses five lands. Each has a Lord, and no Lord lets a stranger pass without a battle.",
+      "The road to the Citadel crosses five lands. Each is kept by a Master of its nature, and none of them lets a stranger pass without a battle.",
       [
         "hero"
       ]
@@ -78,7 +78,7 @@
   "lord_appears": [
     [
       "narr",
-      "{lord}, Lord of {land}, steps into the road!"
+      "{master} {lord} steps into the road!"
     ]
   ],
   "lord_wins": [
@@ -117,7 +117,7 @@
   "tell_quest": [
     [
       "narr",
-      "{hero} tells {lord} about {sweetheart}, and the road to the Citadel."
+      "{hero} tells {lord} that the Citadel has fallen, and who was inside."
     ]
   ],
   "joined": "{LORD} JOINS YOU!",
@@ -125,11 +125,15 @@
   "lord_hints": {
     "1": [
       "lord",
-      "The raiders hit us hard last month. Their creatures fought like one mind, as if something was holding them together."
+      "Those six came through here on their way. Their creatures moved like one mind, as if something was holding them together."
     ],
     "3": [
       "lord",
-      "One of their captains had a creature that wasn't of his own nature. I told myself I'd imagined it. Nobody can do that."
+      "One of them had a creature that wasn't of their own nature. I told myself I'd imagined it. Nobody can do that."
+    ],
+    "4": [
+      "lord",
+      "I've stood at the Citadel's gates. Nothing breaks them. If those six are inside, I'd like to know how."
     ]
   },
   "citadel_intro": [
@@ -139,7 +143,11 @@
     ],
     [
       "narr",
-      "The Citadel stands on the Rift itself. Here, the bond between trainer and creature runs stronger than anywhere in the lands."
+      "The Citadel stands on the Rift itself. Here, the bond between master and creature runs stronger than anywhere in the lands."
+    ],
+    [
+      "narr",
+      "Its gates stand open. Nothing is broken. Nothing is burned."
     ],
     [
       "hero",
@@ -147,7 +155,7 @@
     ],
     [
       "narr",
-      "Each of the six outcasts holds a floor. Each of them grew up beside one of you."
+      "Each of the six holds a floor. Each of them grew up beside one of you."
     ]
   ],
   "floor_enter": [
@@ -175,27 +183,31 @@
   "first_down": [
     [
       "nemesis",
-      "Not bad. But I stopped playing by the old rules a long time ago."
+      "Not bad. But I stopped believing what everyone knows a long time ago."
     ]
   ],
   "sixth_reveal_first": [
     [
       "narr",
-      "{nemesis} sends out a sixth creature. A {beater} one."
+      "{nem_first} sends out one more creature. A {beater} one."
     ],
     [
       "ally",
-      "That's impossible. You're {element}, like me. You can't bond a second nature. Nobody can!"
+      "That's impossible. You're {element}, like me. No {beater} creature would ever follow you!"
     ],
     [
       "nemesis",
-      "Five of a kind tear each other apart. A sixth, of a stronger nature, keeps them in line. Did you never wonder why we started winning?"
+      "Five of a kind tear each other apart. Everyone knows that. But add one of a stronger nature, and it keeps the rest in line."
+    ],
+    [
+      "nemesis",
+      "Two things nobody could do. It turns out you only have to do both at once."
     ]
   ],
   "sixth_reveal_later": [
     [
       "narr",
-      "{nemesis} sends out a sixth creature. {Beater}: the nature that beats {ally}'s."
+      "{nem_first} sends out one more creature. {Beater}: the nature that beats {ally}'s."
     ],
     [
       "ally",
@@ -218,52 +230,75 @@
   "final_enter": [
     [
       "narr",
-      "The top of the Citadel. The Rift howls overhead.",
-      []
-    ],
-    [
-      "nemesis",
-      "{hero}. I knew you'd come.",
-      [
-        "hero",
-        "nemesis"
-      ]
+      "The top of the Citadel. Night, and the Rift howling overhead. On the platform at the centre of the roof, someone is waiting.",
+      "roof:far"
     ],
     [
       "hero",
-      "Where is {sweetheart}, {nem_first}?",
-      [
-        "hero",
-        "nemesis"
-      ]
-    ],
-    [
-      "nemesis",
-      "Safe. Watching. Shall we?",
-      [
-        "hero",
-        "nemesis"
-      ]
+      "{nem_first}! Where is {sweetheart}?",
+      "roof:far"
     ],
     [
       "narr",
-      "This fight is {hero}'s alone.",
-      [
-        "hero",
-        "nemesis"
-      ]
+      "No answer. Only a laugh, quickly smothered.",
+      "roof:far"
+    ],
+    [
+      "narr",
+      "{hero} comes closer. It isn't {nem_first}.",
+      "roof:near"
+    ],
+    [
+      "hero",
+      "{sweetheart}? Is that you? Are you all right?",
+      "roof:near"
+    ],
+    [
+      "nemesis",
+      "Of course {sw_they}'s all right. I'm only here keeping {sw_them} company.",
+      "roof:all"
+    ],
+    [
+      "hero",
+      "Let {sw_them} go.",
+      "roof:all"
+    ],
+    [
+      "nemesis",
+      "Let {sw_them} go? {Sw_they} invited me. You're the one who broke in.",
+      "roof:all"
+    ],
+    [
+      "hero",
+      "{sweetheart}. Is that true?",
+      "roof:all"
+    ],
+    [
+      "sweetheart",
+      "What can I say? {nem_first} is a very impressive {nem_man}.",
+      "roof:all"
+    ],
+    [
+      "hero",
+      "Impressive? I could beat {nem_them} any day.",
+      "roof:all"
+    ],
+    [
+      "nemesis",
+      "We'll see about that.",
+      "roof:all"
     ]
   ],
   "final_no_creature": [
     [
       "nemesis",
-      "You climbed all this way with nothing left to fight me with? Come back when you can stand."
+      "You climbed all this way with nothing left to fight me with? Then send me your friends."
     ]
   ],
   "final_first_down": [
     [
       "nemesis",
-      "You've seen the trick by now. A sixth, of the nature that beats yours."
+      "You've seen the trick by now. One more, of the nature that beats yours."
     ],
     [
       "nemesis",
@@ -277,15 +312,15 @@
     ],
     [
       "nemesis",
-      "Did you think it was only {beater}? I didn't just train a second nature, {hero}. I bred the two together."
+      "Did you think it was only {beater}? I didn't stop at keeping a second nature, {hero}. I bred the two together."
     ],
     [
       "nemesis",
-      "My strongest {element} creature, and the strongest {beater} creature in the lands. Hers."
+      "My strongest {element} creature, and the strongest {beater} creature in the lands."
     ],
     [
       "hero",
-      "...{sweetheart}'s?"
+      "...{sweetheart}'s."
     ],
     [
       "nemesis",
@@ -309,7 +344,7 @@
     ],
     [
       "hero",
-      "It's over, {nem_first}. How did you do it? Tell me the secret.",
+      "It's over, {nem_first}. A creature of another nature, and it followed you. Tell me how.",
       [
         "hero",
         "nemesis"
@@ -325,14 +360,28 @@
     ],
     [
       "narr",
-      "{nem_first} bolts for the Rift, and is gone.",
+      "{nem_first} runs for the battlements, and jumps.",
       [
         "hero"
       ]
     ],
     [
       "hero",
-      "No! Now I'll never know.",
+      "No!",
+      [
+        "hero"
+      ]
+    ],
+    [
+      "narr",
+      "{hero} reaches the edge. Just below it, a narrow ledge. Below that, a ladder, and {nem_first} already halfway down the tower.",
+      [
+        "hero"
+      ]
+    ],
+    [
+      "hero",
+      "Now I'll never know.",
       [
         "hero"
       ]
@@ -346,40 +395,63 @@
       ]
     ],
     [
+      "sweetheart",
+      "{nem_first} had done something no one had ever done. I wanted to see it. So I let {nem_them} show me everything.",
+      [
+        "hero",
+        "sweetheart"
+      ]
+    ],
+    [
+      "sweetheart",
+      "Then I watched you cross five lands and climb this tower without any of it.",
+      [
+        "hero",
+        "sweetheart"
+      ]
+    ],
+    [
+      "sweetheart",
+      "{Nem_they} thinks the secret left with {nem_them}. It didn't. I'll tell you all of it.",
+      [
+        "hero",
+        "sweetheart"
+      ]
+    ],
+    [
+      "narr",
+      "It's done. One by one, they turn for the stairs.",
+      [
+        "hero"
+      ]
+    ],
+    [
+      "sweetheart",
+      "Wait.",
+      [
+        "hero",
+        "sweetheart"
+      ]
+    ],
+    [
+      "narr",
+      "{hero} turns, and walks back to {sw_them}. The others go on down.",
+      [
+        "hero",
+        "sweetheart"
+      ]
+    ],
+    [
+      "sweetheart",
+      "I've kept this place alone long enough. Stay.",
+      [
+        "hero",
+        "sweetheart"
+      ]
+    ],
+    [
       "hero",
-      "{sweetheart}! Did {nem_they} hurt you?",
-      [
-        "hero",
-        "sweetheart"
-      ]
-    ],
-    [
-      "sweetheart",
-      "Nobody took me. I went. {nem_first} had done something no one had ever done, and I wanted to see it.",
-      [
-        "hero",
-        "sweetheart"
-      ]
-    ],
-    [
-      "sweetheart",
-      "And then I watched you cross five lands and climb this tower without it.",
-      [
-        "hero",
-        "sweetheart"
-      ]
-    ],
-    [
-      "sweetheart",
-      "Don't worry about the secret. {Nem_they} told me everything. I'll tell you.",
-      [
-        "hero",
-        "sweetheart"
-      ]
-    ],
-    [
-      "sweetheart",
-      "Let's go home.",
+      "One minute.",
       [
         "hero",
         "sweetheart"
@@ -388,7 +460,6 @@
   ],
   "end": {
     "title": "THE END",
-    "line": "{hero} and {sweetheart} went home to {land}. The five Lords went with them as far as the border.",
     "stats": "Battles lost along the way: {losses}.   Turns fought: {turns}.",
     "again": "Thank you for playing. Press Enter to return to the title."
   },
@@ -397,7 +468,9 @@
     "new": "Begin a new journey",
     "trial": "A quick taste (about ten minutes)",
     "new_warning": "Beginning again will replace the journey you have saved.",
-    "hint": "Arrow keys or WASD choose.  Enter confirms.  Esc leaves."
+    "hint": "Arrow keys or WASD choose.  Enter confirms.  Esc leaves.",
+    "earlier": "Go back to an earlier rest point",
+    "earlier_ask": "Go back to where? Later rest points stay as they are until you reach them again."
   },
   "home": [
     [
@@ -415,10 +488,10 @@
       "The innkeeper will rest your creatures and remember how far you've come. Stop in before the border."
     ],
     "away": [
-      "{lord} doesn't wait at the gate like other Lords. {Lord_they} will find you.",
+      "{lord} isn't one to wait at the gate. {Lord_they}'ll find you.",
       "Everything that lives here is {land_element} through and through. They'll fight you, stranger. They'll never follow you.",
       "Now and then a {element} creature strays over the border. Lost, mostly. It might be glad of a familiar face.",
-      "The raiders came through last month. Our creatures hit them with everything. It was like hitting a wall."
+      "Six strangers came through last month, bound for the Citadel. Our creatures hit them with everything. It was like hitting a wall."
     ]
   },
   "sign": "{land}.  East: the border road.",
@@ -429,15 +502,15 @@
   "market_poor": "You haven't the coins for that.",
   "found": {
     "herb": "A fragrant herb, growing wild.",
-    "herb_brewed": "A fragrant herb. Rowan crushes it into a remedy before you've even put it away.",
+    "herb_brewed": "A fragrant herb. Willow crushes it into a remedy before you've even put it away.",
     "shard": "A sliver of the Rift, still faintly warm.",
     "chest": "A traveller's cache, hidden well. Inside: {loot}.",
     "full": "There's no room left in your satchel."
   },
   "navigator": "There's a way through here. Most people walk straight past it.",
-  "gate_shut": "The border gate is barred. Nobody crosses without the Lord's word.",
-  "gate_ask": "Cross into {next_land}? There's no coming back this way.",
-  "gate_citadel": "Beyond the border, the road climbs to the Citadel. There's no coming back this way.",
+  "gate_shut": "The border gate is barred. Nobody crosses without the {master}'s word.",
+  "gate_ask": "Cross into {next_land}?",
+  "gate_citadel": "Beyond the border, the road climbs to the Citadel. Inside there's no resting, and no way back out.",
   "lookout": "Hold on. Someone's waiting up ahead.",
   "forecast": {
     "wave": "Rain on the way. Wave moves will hit harder today.",
@@ -454,12 +527,6 @@
   "forge": "Kael works two shards over the fire until they run together. A charm.",
   "lord_fall_back": "Fall back and get ready",
   "lord_ally": "Let an ally try",
-  "allies_ready": [
-    [
-      "narr",
-      "On the last night before the Citadel, the Lords train their creatures alongside yours until none of them lags behind."
-    ]
-  ],
   "blocked": {
     "wave": {
       "scene": "A wall of fire fills the stairway from side to side. The stones around it are scorched black.",
@@ -491,13 +558,13 @@
   "trial_start": [
     [
       "narr",
-      "This is a short taste of the journey: one Lord, one floor of the Citadel, and what waits at the top."
+      "This is a short taste of the journey: one Master, one floor of the Citadel, and what waits at the top."
     ]
   ],
   "trial_bridge": [
     [
       "narr",
-      "Four more Lords, a great many miles and a great many battles later..."
+      "Four more Masters, a great many miles and a great many battles later..."
     ]
   ],
   "trial_top": [
@@ -545,5 +612,112 @@
     "saved": "Your journey is remembered from the last time you rested.",
     "stay": "Keep playing",
     "leave": "Leave"
-  }
+  },
+  "bonded_ally": "{creature} goes to {trainer}'s side.",
+  "who_wild": "Who takes on the wild {creature}?",
+  "who_lord": "Who takes on {lord}?",
+  "gate_back": "Take the road back to {prev_land}?",
+  "ready": {
+    "no": "{hero}, I'll say it plainly. I don't think we're ready for that place. Not yet.",
+    "rest": "We'll get no rest in there. Best we go in fresh, and as strong as we can make ourselves."
+  },
+  "own_first": [
+    [
+      "narr",
+      "{nem_first} has eyes for nobody else. Whatever comes out, {ally} must be the first to meet it."
+    ]
+  ],
+  "takes_over": "{creature} is down. Who takes over?",
+  "call_who": "Who steps in?",
+  "breather": {
+    "ask": "The stairs are quiet. A moment to see to the creatures before the next floor.",
+    "satchel": "Open the satchel",
+    "heal": "A healing touch",
+    "teams": "Look over the teams",
+    "go": "Climb on"
+  },
+  "heal": {
+    "who": "Whose healing touch?",
+    "which": "{trainer} can mend one of {their} own. Which?",
+    "none": "{trainer} has no healing touch left. Only a proper rest, or an elixir, brings it back.",
+    "no_need": "None of {trainer}'s creatures needs it. It can't wake one that has fainted.",
+    "done": "{trainer} lays a hand on {creature}. It recovers {n} HP.",
+    "elixir_who": "Whose healing touch should the elixir restore?",
+    "elixir_done": "{trainer}'s healing touch is as strong as ever.",
+    "elixir_full": "{trainer}'s healing touch is already at its strongest."
+  },
+  "market": {
+    "supplies": "Supplies",
+    "lures": "{element} lures",
+    "lures_about": "Tempt a weakened wild {element} creature to join whoever of your party shares its nature.",
+    "supplies_about": "Remedies, tonics, charms and elixirs."
+  },
+  "floor_hints": {
+    "1": [
+      "ally",
+      "Every door we've come to was already unlocked. Has anyone else noticed that?"
+    ],
+    "2": [
+      "nemesis",
+      "Climb, then. But ask yourself who opened the gates."
+    ]
+  },
+  "outro_stairs": [
+    [
+      "narr",
+      "{hero} runs down after them.",
+      [
+        "hero",
+        "ally"
+      ]
+    ],
+    [
+      "ally",
+      "There you are. We almost thought you were staying.",
+      [
+        "hero",
+        "ally"
+      ]
+    ],
+    [
+      "hero",
+      "I am. My place is here now. Go back to your lands.",
+      [
+        "hero",
+        "ally"
+      ]
+    ],
+    [
+      "hero",
+      "...",
+      [
+        "hero",
+        "ally"
+      ]
+    ],
+    [
+      "hero",
+      "But don't forget to come back in the spring.",
+      [
+        "hero",
+        "ally"
+      ]
+    ],
+    [
+      "ally2",
+      "What's in the spring?",
+      [
+        "hero",
+        "ally2"
+      ]
+    ],
+    [
+      "hero",
+      "Our wedding.",
+      [
+        "hero",
+        "ally2"
+      ]
+    ]
+  ]
 }

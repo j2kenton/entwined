@@ -25,9 +25,9 @@ PALETTES = {
     "loamkin": dict(body=(150, 106, 68), hi=(192, 150, 104), lo=(100, 68, 44), belly=(218, 186, 146),
                  accent=(238, 226, 198), accent_lo=(150, 150, 162), tip=(240, 140, 150),
                  eye=(26, 20, 18), mark=(110, 110, 126), outline=(44, 28, 20), cheek=(224, 134, 122)),
-    "nimbleat": dict(bright_eyes=True, body=(232, 230, 244), hi=(255, 255, 255), lo=(176, 172, 208), belly=(72, 66, 100),
+    "nimbleat": dict(face=(136, 128, 174), body=(232, 230, 244), hi=(255, 255, 255), lo=(176, 172, 208), belly=(72, 66, 100),
                       accent=(255, 225, 80), accent_lo=(222, 162, 40), tip=(255, 250, 180),
-                      eye=(255, 240, 150), mark=(190, 150, 255), outline=(40, 34, 64), cheek=(230, 130, 160)),
+                      eye=(22, 18, 34), mark=(190, 150, 255), outline=(40, 34, 64), cheek=(230, 130, 160)),
 }
 
 
@@ -39,22 +39,33 @@ PALETTES.update(creatures2.PALETTES)
 
 
 def palette(sid, variant="normal", other=None):
-    """Colours for a species: normal, a villain's "shadow", or a hybrid with
-    accents of a second element (`other`)."""
+    """Colours for a species: normal, a villain's "shadow", a villain's hybrid with
+    accents of a second element (`other`), or "kin": a gentle hybrid, as bright as
+    any creature, carrying its other parent's colours."""
     p = dict(PALETTES[sid])
-    bright = p.pop("bright_eyes", False)      # small glowing eyes on a dark face
-    p["glint"] = (255, 255, 255)
+    # every creature has the same kind of eye: dark, with a small highlight
+    p["glint"] = p["glint_small"] = (255, 255, 255)
     if variant == "normal":
+        return p
+    if variant == "kin" and other:
+        # a hybrid raised in the open: its own bright self, marked with its other parent's nature
+        oc = tuple(ELEMENTS["colour"][other])
+        p["body"] = mix(p["body"], oc, 0.14)
+        p["accent"], p["accent_lo"] = oc, darker(oc, 0.7)
+        p["mark"], p["tip"] = lighter(oc, 0.5), lighter(oc, 0.6)
+        p["cheek"] = mix(p["cheek"], oc, 0.35)
         return p
     q = {k: _shade(v) for k, v in p.items()}
     q["outline"] = (10, 6, 16)
-    # dark eyes with a red glint (or, on a dark face, small eyes that glow red)
-    q["eye"] = (255, 90, 110) if bright else (14, 8, 22)
-    q["glint"] = (255, 220, 225) if bright else (255, 70, 90)
+    # dark eyes with a red glint (never a solid red eye: it reads as a mistake, not menace)
+    q["eye"] = (14, 8, 22)
+    q["glint"] = q["glint_small"] = (168, 150, 172)      # a dim highlight: enough to look alive, no more
     q["belly"] = mix(darker(p["belly"], 0.62), (60, 40, 80), 0.3)
     if sid == "nimbleat":
         q["belly"] = (34, 26, 48)
-    q["tip"] = (200, 80, 210)
+    q["tip"] = lighter(mix(q["tip"], q["accent"], 0.4), 0.12)       # its own colour, dulled (nothing bright stuck on)
+    q["dark"] = True                              # the drawings give dark versions their own shapes
+    q["cheek"] = mix(q["cheek"], q["body"], 0.7)  # no blush
     if variant == "hybrid" and other:
         oc = tuple(ELEMENTS["colour"][other])
         q["body"] = mix(q["body"], oc, 0.22)
@@ -63,10 +74,7 @@ def palette(sid, variant="normal", other=None):
         q["accent_lo"] = darker(oc, 0.65)
         q["mark"] = lighter(oc, 0.5)
         q["tip"] = lighter(oc, 0.6)
-        if bright:
-            q["eye"] = lighter(oc, 0.3)
-        else:
-            q["glint"] = lighter(oc, 0.3)
+        q["glint"] = q["glint_small"] = lighter(oc, 0.3)
         q["cheek"] = darker(oc, 0.8)
     return q
 
@@ -79,6 +87,10 @@ def ripplefin(s, p, phase=0):
     head_sh = ball_shader(19, 17, 12, 10, p["body"], p["hi"], p["lo"])
     frill, frill_lo = p["accent"], p["accent_lo"]
     frill_sh = lambda x, y: frill if (I(x) + I(y)) % 5 else frill_lo
+    dk = p.get("dark")
+    if dk:                                                               # a jagged ridge down the tail
+        for (x, y, dx, dy) in ((36, 30, 2.5, -6), (41.5, 26, 5, -3.5), (43.5, 19.5, 5.5, -1)):
+            creatures2.spike(s, x, y, dx, dy, 2.2, frill_sh)
     # tail curling up behind
     pts = [(32, 33), (39, 31), (44, 25), (45, 18), (42, 13)]
     for (x0, y0), (x1, y1), r0 in zip(pts, pts[1:], [4.2, 3.4, 2.6, 1.9, 1.3]):
@@ -100,7 +112,14 @@ def ripplefin(s, p, phase=0):
     for (x0, y0, x1, y1) in ((9, 13, 2, 6), (8, 17, 0, 16), (9, 21, 2, 27),
                              (29, 13, 36, 6), (30, 17, 38, 16), (29, 21, 36, 27)):
         s.thick_line(x0, y0, x1, y1, 2.1, frill_sh)
-        s.ellipse(x1, y1, 1.8, 1.8, p["tip"])
+        if dk:                                                           # barbed, not bobbled
+            n = math.hypot(x1 - x0, y1 - y0)
+            ux, uy = (x1 - x0) / n, (y1 - y0) / n
+            creatures2.spike(s, x1 - ux * 2.5, y1 - uy * 2.5, ux * 5.5, uy * 5.5, 2.6, p["tip"])
+            creatures2.spike(s, x0 + ux * 3.5, y0 + uy * 3.5, -uy * 3.4 * (1 if x1 > x0 else -1), ux * 3.4 * (1 if x1 > x0 else -1) - 1,
+                             1.2, frill_lo)
+        else:
+            s.ellipse(x1, y1, 1.8, 1.8, p["tip"])
     # head
     s.ellipse(19, 17, 12, 10, head_sh)
     s.ellipse(19, 21.5, 7, 4, mix(p["body"], p["belly"], 0.75))
@@ -110,15 +129,17 @@ def ripplefin(s, p, phase=0):
     # big eyes
     for ex in (13.5, 24.5):
         s.ellipse(ex, 16.5, 3.1, 3.6, p["eye"])
-        s.set(ex - 1.5, 14.5, p["glint"])
-        s.set(ex - 0.5, 14.5, p["glint"])
-        s.set(ex - 1.5, 15.5, p["glint"])
-        s.set(ex + 0.8, 18.6, mix(p["eye"], p["glint"], 0.5))
+        if not dk:
+            s.set(ex - 1.5, 14.5, p["glint"])
+            s.set(ex - 0.5, 14.5, p["glint"])
+            s.set(ex - 1.5, 15.5, p["glint"])
+            s.set(ex + 0.8, 18.6, mix(p["eye"], p["glint"], 0.5))
+    creatures2.scowl(s, p, ((13.5, 16.5), (24.5, 16.5)), 3.1, 3.6)
     s.ellipse(10.5, 21, 1.6, 1.2, p["cheek"])
     s.ellipse(27.5, 21, 1.6, 1.2, p["cheek"])
     mouth = darker(p["lo"], 0.6)
     for x, y in ((17, 22), (18, 23), (19, 23), (20, 23), (21, 22)):
-        s.set(x, y, mouth)
+        s.set(x, (45 - y) if dk else y, mouth)
 
 
 def emberkit(s, p, phase=0):
@@ -130,6 +151,11 @@ def emberkit(s, p, phase=0):
     s.thick_line(25, 27, 32, 20, 2.6, body_sh)
     s.thick_line(32, 20, 34, 15, 2.0, body_sh)
     fx, fy = 34.5 + math.sin(a) * 0.8, 11
+    dk = p.get("dark")
+    if dk:                                                               # a three-tongued flame
+        for off in (-4.2, 4.2):
+            s.polygon([(fx + off - 2, fy + 5), (fx + off * 1.5 + math.sin(a + off) * 1.2, fy - 5.5), (fx + off + 2, fy + 5)],
+                      p["accent_lo"])
     for col, sc in ((p["accent_lo"], 1.0), (p["accent"], 0.7), (p["tip"], 0.42)):
         s.polygon([(fx - 5 * sc, fy + 6 * sc),
                    (fx - 3 * sc + math.sin(a + 1) * 1.5, fy - 2 * sc),
@@ -152,34 +178,50 @@ def emberkit(s, p, phase=0):
     # head + cheek tufts + muzzle
     s.polygon([(8, 13), (3.5, 15), (8, 17.5)], body_sh)
     s.polygon([(26, 13), (30.5, 15), (26, 17.5)], body_sh)
+    if dk:                                                               # a shaggier, sharper ruff
+        s.polygon([(8, 10.5), (2, 9.5), (8, 14)], body_sh)
+        s.polygon([(26, 10.5), (32, 9.5), (26, 14)], body_sh)
+        s.polygon([(9, 16.5), (3.5, 20.5), (10.5, 19.5)], body_sh)
+        s.polygon([(25, 16.5), (30.5, 20.5), (23.5, 19.5)], body_sh)
     s.ellipse(17, 13, 10, 8.5, head_sh)
     s.ellipse(17, 16.8, 5, 3, cream)
     s.polygon([(17, 5), (18.6, 7.5), (17, 9), (15.4, 7.5)], p["mark"])
     for ex in (12.5, 21.5):
         s.ellipse(ex, 12.5, 2.3, 2.8, p["eye"])
-        s.set(ex - 1, 11, p["glint"])
-        s.set(ex + 0.6, 14, mix(p["eye"], p["glint"], 0.45))
+        if not dk:
+            s.set(ex - 1, 11, p["glint"])
+            s.set(ex + 0.6, 14, mix(p["eye"], p["glint"], 0.45))
+    creatures2.scowl(s, p, ((12.5, 12.5), (21.5, 12.5)), 2.3, 2.8)
     dark = darker(p["lo"], 0.45)
     s.set(17, 15, dark)
     for x, y in ((15, 17), (16, 18), (17, 18), (18, 17)):
-        s.set(x, y, dark)
-    s.set(16, 19, (255, 255, 255))
+        s.set(x, (35 - y) if dk else y, dark)
+    if not dk:
+        s.set(16, 19, (255, 255, 255))
 
 
 def bramblehog(s, p, phase=0):
     cx, cy = 23, 21
+    dk = p.get("dark")
     # leafy spikes all round the back
     for i, deg in enumerate(range(-178, 0, 15)):
         a = math.radians(deg)
         nx, ny = math.cos(a), math.sin(a)
         bx, by = cx + 13.5 * nx, cy + 10 * ny
+        if dk:                                                           # long bare thorns, uneven
+            reach = (1.16, 0.96, 1.1)[i % 3]
+            tx, ty = cx + 21 * reach * nx, cy + 17.5 * reach * ny
+            px, py = -ny * 1.5, nx * 1.5
+            s.polygon([(bx + px, by + py), (tx, ty), (bx - px, by - py)], p["lo"] if i % 2 else p["accent_lo"])
+            continue
         tx, ty = cx + 21 * nx, cy + 17.5 * ny
         px, py = -ny * 2.6, nx * 2.6
         s.polygon([(bx + px, by + py), (tx, ty), (bx - px, by - py)],
                   p["accent"] if i % 2 else p["accent_lo"])
     # a little flower caught in the spikes
-    s.ellipse(33, 7.5, 2.2, 2.2, p["tip"])
-    s.set(33, 7, lighter(p["tip"], 0.6))
+    if not dk:
+        s.ellipse(33, 7.5, 2.2, 2.2, p["tip"])
+        s.set(33, 7, lighter(p["tip"], 0.6))
     # body
     s.ellipse(cx, cy + 1, 15, 11, ball_shader(cx, cy + 1, 15, 11, p["body"], p["hi"], p["lo"]))
     # ears
@@ -190,17 +232,25 @@ def bramblehog(s, p, phase=0):
     s.ellipse(cx, 25, 10, 7.5, ball_shader(cx, 25, 10, 7.5, p["belly"], lighter(p["belly"], 0.5), darker(p["belly"], 0.86)))
     for sx in (-1, 1):
         s.ellipse(cx + sx * 4.5, 22.5, 1.9, 2.3, p["eye"])
-        s.set(cx + sx * 4.5 - 1, 21.5, p["glint"])
-        s.ellipse(cx + sx * 7.5, 26.5, 1.6, 1.1, p["cheek"])
+        if not dk:
+            s.set(cx + sx * 4.5 - 1, 21.5, p["glint"])
+            s.ellipse(cx + sx * 7.5, 26.5, 1.6, 1.1, p["cheek"])
+    creatures2.scowl(s, p, ((cx - 4.5, 22.5), (cx + 4.5, 22.5)), 1.9, 2.3, darker(p["belly"], 0.8))
     s.ellipse(cx, 26.5, 1.8, 1.4, darker(p["lo"], 0.5))
-    s.set(cx - 0.5, 26, lighter(p["lo"], 0.3))
+    if not dk:
+        s.set(cx - 0.5, 26, lighter(p["lo"], 0.3))
     mouth = darker(p["lo"], 0.6)
     for x, y in ((cx - 2, 29), (cx - 1, 30), (cx, 30), (cx + 1, 29)):
-        s.set(x, y, mouth)
-    # sprout on its head
-    s.thick_line(cx, 12, cx, 8, 0.7, p["accent_lo"])
-    s.ellipse(cx - 2.6, 7, 2.6, 1.5, p["mark"])
-    s.ellipse(cx + 2.6, 6.4, 2.6, 1.5, p["accent"])
+        s.set(x, (59 - y) if dk else y, mouth)
+    if dk:
+        s.thick_line(cx, 12, cx - 0.5, 7, 0.7, p["lo"])                  # a dead twig where the sprout was
+        s.line(cx - 0.3, 9.5, cx - 3.5, 6, p["lo"])
+        s.line(cx - 0.4, 8.5, cx + 2.6, 5.4, p["lo"])
+    else:
+        # sprout on its head
+        s.thick_line(cx, 12, cx, 8, 0.7, p["accent_lo"])
+        s.ellipse(cx - 2.6, 7, 2.6, 1.5, p["mark"])
+        s.ellipse(cx + 2.6, 6.4, 2.6, 1.5, p["accent"])
     # feet
     for sx in (-1, 1):
         s.ellipse(cx + sx * 7, 33.2, 3.4, 1.9, p["lo"])
@@ -211,6 +261,7 @@ def bramblehog(s, p, phase=0):
 def gustwing(s, p, phase=0):
     cx = 22
     wing_sh = lambda x, y: p["accent"] if (I(x) - I(y)) % 4 else p["accent_lo"]
+    dk = p.get("dark")
     flap = math.sin(phase * math.tau) * 1.2
     # tail feathers
     s.polygon([(cx - 4, 29), (cx - 7, 35.5), (cx - 2, 32)], p["accent_lo"])
@@ -221,6 +272,10 @@ def gustwing(s, p, phase=0):
         s.polygon([(cx + sx * 9, 17), (cx + sx * 21, 8 + flap), (cx + sx * 18.5, 16),
                    (cx + sx * 21.5, 19 + flap), (cx + sx * 17, 22), (cx + sx * 19, 26),
                    (cx + sx * 10, 26)], wing_sh)
+        if dk:                                                           # ragged, hooked wings
+            s.polygon([(cx + sx * 11, 25), (cx + sx * 14, 32), (cx + sx * 15.5, 25)], wing_sh)
+            s.polygon([(cx + sx * 15, 23.5), (cx + sx * 21.5, 30), (cx + sx * 18.5, 22)], wing_sh)
+            s.polygon([(cx + sx * 18, 9.5), (cx + sx * 22, 2 + flap), (cx + sx * 21, 10)], p["accent_lo"])
     # body
     s.ellipse(cx, 21, 11.5, 11, ball_shader(cx, 21, 11.5, 11, p["body"], p["hi"], p["lo"]))
     s.ellipse(cx, 26, 7, 5.5, p["belly"])
@@ -228,16 +283,26 @@ def gustwing(s, p, phase=0):
     for x, y in ((cx - 2, 26), (cx - 1, 25), (cx, 25), (cx + 1, 26), (cx, 27), (cx + 3, 28), (cx + 4, 27)):
         s.set(x, y, p["mark"])
     # crest
-    s.thick_line(cx - 1, 11, cx + 2, 5.5, 1.7, p["accent"])
-    s.thick_line(cx + 2, 5.5, cx + 6.5, 5, 1.3, p["accent"])
-    s.ellipse(cx + 7, 6.5, 1.3, 1.3, p["accent_lo"])
+    if dk:                                                               # swept-back horns, not a curl
+        s.polygon([(cx - 5, 12), (cx - 10.5, 1.5), (cx - 1.5, 10)], p["accent"])
+        s.polygon([(cx + 5, 12), (cx + 10.5, 1.5), (cx + 1.5, 10)], p["accent"])
+        s.polygon([(cx - 1.6, 10.5), (cx, 4), (cx + 1.6, 10.5)], p["accent_lo"])
+    else:
+        s.thick_line(cx - 1, 11, cx + 2, 5.5, 1.7, p["accent"])
+        s.thick_line(cx + 2, 5.5, cx + 6.5, 5, 1.3, p["accent"])
+        s.ellipse(cx + 7, 6.5, 1.3, 1.3, p["accent_lo"])
     # face
     for sx in (-1, 1):
         s.ellipse(cx + sx * 4.6, 18, 2.3, 2.7, p["eye"])
-        s.set(cx + sx * 4.6 - 1, 16.5, p["glint"])
-        s.set(cx + sx * 4.6, 16.5, p["glint"])
-        s.ellipse(cx + sx * 8, 21.5, 1.6, 1.1, p["cheek"])
-    s.polygon([(cx - 2.2, 20), (cx + 2.2, 20), (cx, 24)], p["tip"])
+        if not dk:
+            s.set(cx + sx * 4.6 - 1, 16.5, p["glint"])
+            s.set(cx + sx * 4.6, 16.5, p["glint"])
+            s.ellipse(cx + sx * 8, 21.5, 1.6, 1.1, p["cheek"])
+    creatures2.scowl(s, p, ((cx - 4.6, 18), (cx + 4.6, 18)), 2.3, 2.7)
+    if dk:                                                               # a long hooked beak
+        s.polygon([(cx - 2.6, 20), (cx + 2.6, 20), (cx + 1.2, 25), (cx - 0.6, 27.5), (cx - 0.4, 24)], p["tip"])
+    else:
+        s.polygon([(cx - 2.2, 20), (cx + 2.2, 20), (cx, 24)], p["tip"])
     s.line(cx - 1.5, 21.5, cx + 1.5, 21.5, darker(p["tip"], 0.7))
     # feet
     for sx in (-1, 1):
@@ -248,8 +313,16 @@ def gustwing(s, p, phase=0):
 def loamkin(s, p, phase=0):
     cx = 23
     # stones along its back
+    dk = p.get("dark")
     for (x, y, r) in ((13, 9.5, 3.2), (22.5, 7, 3.8), (32, 9.5, 2.9)):
-        s.ellipse(x, y, r, r, ball_shader(x, y, r, r, p["accent_lo"], lighter(p["accent_lo"], 0.4), p["mark"]))
+        sh = ball_shader(x, y, r, r, p["accent_lo"], lighter(p["accent_lo"], 0.4), p["mark"])
+        if dk:                                                           # jagged shards, not smooth stones
+            s.polygon([(x - r * 1.2, y + r), (x - r * 0.3, y - r * 2.1), (x + r * 1.2, y + r)], sh)
+        else:
+            s.ellipse(x, y, r, r, sh)
+    if dk:
+        for (x, y, h) in ((8, 13, 5), (17.5, 9.5, 5.5), (27.5, 9.5, 5.5), (37, 13, 5)):
+            s.polygon([(x - 1.8, y + 2), (x + 0.4, y - h), (x + 1.8, y + 2)], p["mark"])
     # body
     s.ellipse(cx, 19, 16.5, 10.5, ball_shader(cx, 19, 16.5, 10.5, p["body"], p["hi"], p["lo"]))
     s.ellipse(cx, 24, 9.5, 5.5, p["belly"])
@@ -258,20 +331,22 @@ def loamkin(s, p, phase=0):
         s.ellipse(cx + sx * 15, 25.5, 5.2, 3.6, ball_shader(cx + sx * 15, 25.5, 5.2, 3.6, p["lo"], p["body"], darker(p["lo"], 0.8)))
         for k in (0, 1, 2):
             bx = cx + sx * (12 + k * 3)
-            s.polygon([(bx - 1.3, 27), (bx + sx * 1.2, 31.5), (bx + 1.3, 27)], p["accent"])
+            s.polygon([(bx - 1.3, 27), (bx + sx * (2.4 if dk else 1.2), 32.8 if dk else 31.5), (bx + 1.3, 27)], p["accent"])
     # snout
     s.ellipse(cx, 19.5, 5.5, 4, lighter(p["body"], 0.25))
     s.ellipse(cx, 17.4, 2, 1.6, p["tip"])
     s.set(cx - 1, 17, lighter(p["tip"], 0.6))
     mouth = darker(p["lo"], 0.55)
     for x, y in ((cx - 2, 21), (cx - 1, 22), (cx, 22), (cx + 1, 21)):
-        s.set(x, y, mouth)
+        s.set(x, (43 - y) if dk else y, mouth)
     # tiny eyes, cheeks, whiskers
     for sx in (-1, 1):
-        s.ellipse(cx + sx * 7, 15, 1.3, 1.5, p["eye"])
-        s.set(cx + sx * 7 - 0.5, 14.3, p["glint"])
-        s.ellipse(cx + sx * 9.5, 19.5, 1.6, 1.1, p["cheek"])
+        s.ellipse(cx + sx * 7, 15, 1.6 if dk else 1.3, 1.8 if dk else 1.5, p["eye"])
+        if not dk:
+            s.set(cx + sx * 7 - 0.5, 14.3, p["glint"])
+            s.ellipse(cx + sx * 9.5, 19.5, 1.6, 1.1, p["cheek"])
         s.line(cx + sx * 5, 19, cx + sx * 9, 17.8, mouth)
+    creatures2.scowl(s, p, ((cx - 7, 15), (cx + 7, 15)), 1.6, 1.8)
     # back feet
     for sx in (-1, 1):
         s.ellipse(cx + sx * 6, 29.6, 3, 1.6, p["lo"])
@@ -293,19 +368,23 @@ def nimbleat(s, p, phase=0):
         s.polygon([(cx + sx * 6, 13.5), (cx + sx * 11.5, 8.5), (cx + sx * 8.5, 8.5), (cx + sx * 13.5, 2),
                    (cx + sx * 5.5, 9.5), (cx + sx * 8.5, 9.5), (cx + sx * 4, 13.5)],
                   lambda x, y: p["accent"] if y < 9 else p["accent_lo"])
-    # face
+        if p.get("dark"):                                                # heavier, branching horns
+            s.polygon([(cx + sx * 8, 10.5), (cx + sx * 18, 6.5), (cx + sx * 14.5, 9.5), (cx + sx * 19.5, 12), (cx + sx * 9.5, 12.5)],
+                      p["accent_lo"])
+            s.polygon([(cx + sx * 11, 5), (cx + sx * 16.5, 0), (cx + sx * 13.5, 6)], p["accent"])
+    # face (light enough that plain dark eyes show on it)
+    face = p["face"]
     for sx in (-1, 1):
-        s.ellipse(cx + sx * 7.5, 19.5, 2.8, 1.6, dark)
-    s.ellipse(cx, 21.5, 6.2, 6.6, ball_shader(cx, 21.5, 6.2, 6.6, dark, lighter(dark, 0.18), darker(dark, 0.8)))
+        s.ellipse(cx + sx * 7.5, 19.5, 2.8, 1.6, darker(face, 0.8))
+    s.ellipse(cx, 21.5, 6.2, 6.6, ball_shader(cx, 21.5, 6.2, 6.6, face, lighter(face, 0.2), darker(face, 0.8)))
     s.ellipse(cx, 15.6, 4.2, 2.6, p["hi"])
+    creatures2._eyes(s, p, ((cx - 2.9, 20.4), (cx + 2.9, 20.4)), 1.7, 2.0, darker(face, 0.8))
     for sx in (-1, 1):
-        s.ellipse(cx + sx * 2.6, 20.6, 1.4, 1.7, p["eye"])
-        s.set(cx + sx * 2.6 - 0.5, 20, p["glint"])
-        s.set(cx + sx * 4.6, 23.6, p["cheek"])
+        s.set(cx + sx * 5, 23.8, p["cheek"])
     s.set(cx - 0.5, 24, p["cheek"])
     s.set(cx + 0.5, 24, p["cheek"])
-    s.set(cx - 0.5, 25.5, lighter(dark, 0.4))
-    s.set(cx + 0.5, 25.5, lighter(dark, 0.4))
+    s.set(cx - 0.5, 25.5, darker(face, 0.55))
+    s.set(cx + 0.5, 25.5, darker(face, 0.55))
     # sparks in the wool (they flicker)
     k = int(phase * 4) % 4
     for i, (x, y) in enumerate(((9, 15), (35, 16), (31, 31), (12, 31), (36, 25), (7, 24))):

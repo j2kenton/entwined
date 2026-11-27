@@ -222,6 +222,88 @@ def rooftop(cv, S):
     return (60, 40, 88), (128, 88, 170)
 
 
+def _dais(cv, top, face, face_lo, lip, runner=None):
+    """The platform at the centre of the Citadel's roof: two steps up from the stones."""
+    cv.polygon([(34, 39), (66, 39), (71, 46), (29, 46)], top)
+    cv.rect(29, 46, 71, 49, face)
+    cv.rect(29, 46, 71, 46, lip)
+    cv.polygon([(27, 49), (73, 49), (76, 53), (24, 53)], top)
+    cv.rect(24, 53, 76, 56, face_lo)
+    cv.rect(24, 53, 76, 53, lip)
+    if runner:                                            # a cloth laid up and over the steps
+        hi, lo = runner
+        cv.polygon([(46, 39), (54, 39), (55.5, 46), (44.5, 46)], hi)
+        cv.rect(44.5, 46, 55.5, 49, lo)
+        cv.polygon([(44, 49), (56, 49), (57, 53), (43, 53)], hi)
+        cv.rect(43, 53, 57, 56, lo)
+        cv.polygon([(43, 56), (57, 56), (59, H - 1), (41, H - 1)], hi)
+
+
+def roof_dais(cv, S):
+    """The rooftop at night, seen from further back: the platform stands in the middle of it."""
+    rooftop(cv, S)
+    _dais(cv, (76, 54, 106), (44, 30, 66), (30, 20, 48), (120, 86, 160))
+    return None, None
+
+
+def wedding(cv, S):
+    """The same rooftop in spring daylight, dressed for a wedding: a raised
+    platform in the middle with a canopy over it."""
+    cv.rect(0, 0, W - 1, HORIZON, vgrad(0, HORIZON, [(118, 168, 226), (176, 208, 238), (250, 226, 206)], S))
+    _clouds(cv, [(12, 7, 1.0), (88, 6, 1.1), (76, 15, 0.5)], (255, 255, 255), (228, 234, 246))
+    # the Rift, quiet for once: a pale ring where it howled before
+    for x in range(16, 85):
+        for y in range(0, 22):
+            dx, dy = (x - 50) / 34, (y - 9) / 8.5
+            d = dx * dx + dy * dy
+            if 0.66 < d < 1.0 and (x + y) % 2 == 0:
+                cv.set(x, y, mix(cv.get(x, y), (236, 206, 250), 0.6))
+    stone, edge = (168, 156, 186), (212, 204, 226)
+    cv.rect(0, 27, W - 1, HORIZON, stone)                 # the same battlements
+    for x in range(0, W, 6):
+        cv.rect(x, 24, x + 2, 27, stone)
+        cv.rect(x, 24, x, 27, edge)
+    cv.rect(0, HORIZON, W - 1, H - 1, vgrad(HORIZON, H, [(214, 202, 214), (192, 178, 196), (166, 152, 174)], S))
+    for y in (33, 36, 40, 45, 51, 58):
+        cv.line(0, y, W - 1, y, (226, 216, 228))
+    for k in range(-8, 9):
+        cv.line(50 + k * 6, HORIZON, 50 + k * 16, H - 1, (226, 216, 228))
+    from ..rules import ELEMENTS
+    cols = [tuple(ELEMENTS["colour"][e]) for e in ELEMENTS["order"]]
+    # bunting from the walls to the canopy, in all six natures' colours
+    for x0, x1 in ((2, 30), (98, 70)):
+        pts = [(x0 + (x1 - x0) * t / 10, 22 - 10 * (t / 10) + 3.5 * (1 - (2 * t / 10 - 1) ** 2)) for t in range(11)]
+        for (xa, ya), (xb, yb) in zip(pts, pts[1:]):
+            cv.line(xa, ya, xb, yb, (120, 96, 84))
+        for n, (x, y) in enumerate(pts[1:-1]):
+            cv.polygon([(x - 1.4, y + 0.4), (x + 1.4, y + 0.4), (x, y + 3.8)], cols[n % 6])
+    # the canopy: four poles and a cloth roof, flowers along its edge
+    pole, cloth, cloth_lo = (236, 226, 214), (255, 252, 246), (232, 222, 226)
+    for x in (39, 61):                                    # back poles
+        cv.rect(x, 15, x, 40, darker(pole, 0.85))
+    cv.polygon([(30, 11), (70, 11), (62, 16), (38, 16)], cloth_lo)             # the roof's underside
+    cv.polygon([(29, 8), (71, 8), (70, 12), (30, 12)], cloth)                  # its front edge
+    for i, x in enumerate(range(30, 70, 4)):
+        cv.polygon([(x, 12), (x + 4, 12), (x + 2, 15)], cloth if i % 2 else (250, 214, 222))
+    for i, x in enumerate(range(30, 71, 3)):
+        cv.ellipse(x, 8.6, 1.3, 1.2, [(255, 236, 240), (250, 196, 208), (255, 246, 214)][i % 3])
+    # the platform: two steps up from the stones
+    _dais(cv, (244, 238, 244), (170, 154, 184), (142, 126, 162), (255, 255, 255), ((228, 148, 156), (196, 108, 122)))
+    for x in (31, 69):                                    # front poles, wound with flowers
+        cv.rect(x, 10, x, 46, pole)
+        cv.rect(x + 1, 10, x + 1, 46, darker(pole, 0.85))
+        for i, y in enumerate(range(14, 46, 5)):
+            cv.ellipse(x + (0.5 if i % 2 else 1), y, 1.4, 1.3, [(250, 196, 208), (255, 246, 214), (255, 236, 240)][i % 3])
+            cv.set(x - 1 + 3 * (i % 2), y + 1, (120, 180, 120))
+    r = rng(57)                                           # petals in the air and on the stones
+    for _ in range(70):
+        x, y = r.randrange(2, W - 2), r.randrange(14, H - 1)
+        if 24 < x < 76 and 16 < y < 57:
+            continue                                      # not across the couple or the steps
+        cv.set(x, y, r.choice([(255, 236, 240), (250, 196, 208), (255, 246, 214)]))
+    return None, None
+
+
 def title(cv, S):
     """The Citadel from outside, under the Rift."""
     r = rng(23)
@@ -360,7 +442,7 @@ def blocked(answer, S):
 
 
 PAINTERS = {"wave": wave, "flame": flame, "root": root, "breeze": breeze, "soil": soil,
-            "lightning": lightning, "hall": hall, "rooftop": rooftop, "title": title}
+            "lightning": lightning, "hall": hall, "rooftop": rooftop, "title": title, "wedding": wedding, "roof_dais": roof_dais}
 _cache = {}
 
 

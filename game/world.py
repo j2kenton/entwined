@@ -6,7 +6,7 @@ wild creatures roam, a hidden nook, and (except at home) a Lord on the road.
 """
 import random
 
-from .art import creatures, trainers
+from .art import creatures, tiles, trainers
 from .engine.canvas import Canvas, I, Sprite, ball_shader, darker, draw_mini, lighter, mini_width, mix
 
 MW, MH = 46, 24          # map size in tiles
@@ -148,6 +148,8 @@ class Land:
         g[gy][gx] = "G"
         self.gate = (gx, gy)
         self.start = path[0]
+        if not home:                                        # the road back to the land before
+            g[self.start[1]][0] = "W"
         self.lord_x = int(MW * 0.72)
         self.lord_spot = (self.lord_x, road_y(self.lord_x))
 
@@ -170,193 +172,17 @@ class Land:
 
 
 # =========================================================================
-# Tile art
+# Tile art (the drawing itself is in art/tiles.py)
 # =========================================================================
 def paint_land(land, S, navigator, gate_open):
     """The whole map as one picture."""
-    th = THEMES[land.element]
-    cv = Canvas(MW * T, MH * T, scale=S)
-    g = land.grid
-
-    def near_ground(x, y):
-        for dx in (-1, 0, 1):
-            for dy in (-1, 0, 1):
-                if land.tile(x + dx, y + dy) != "#":
-                    return True
-        return False
-
-    def ground(x, y):
-        X, Y = x * T, y * T
-        cv.rect(X, Y, X + 7, Y + 7, th["ground"] if _h(x, y, 3) else th["ground2"])
-        for k in range(2):
-            cv.set(X + _h(x, y + k * 7, 8), Y + _h(x + k * 5, y, 8), mix(th["ground"], (0, 0, 0), 0.12))
-
-    def block(x, y, kind):
-        X, Y = x * T, y * T
-        if kind in ("tree", "palm"):
-            cv.rect(X + 3, Y + 4, X + 4, Y + 7, th["trunk"])
-            if kind == "tree":
-                cv.ellipse(X + 4, Y + 3.2, 3.9, 3.4, ball_shader(X + 4, Y + 3.2, 3.9, 3.4, th["leaf"], lighter(th["leaf"], 0.3), darker(th["leaf"], 0.7)))
-            else:
-                for dx, dy in ((-3.5, 1.5), (3.5, 1.5), (-2.5, -1.5), (2.5, -1.5), (0, -2.5)):
-                    cv.thick_line(X + 4, Y + 3, X + 4 + dx, Y + 3 + dy, 0.9, th["leaf"])
-                cv.set(X + 4, Y + 3, lighter(th["leaf"], 0.4))
-        elif kind == "spire":
-            cv.polygon([(X + 0.5, Y + 8), (X + 3, Y + 0.5), (X + 5, Y + 1.5), (X + 7.5, Y + 8)],
-                       lambda px, py: th["leaf"] if px < X + 4 else th["trunk"])
-            cv.line(X + 3, Y + 2, X + 2, Y + 6, lighter(th["leaf"], 0.4))
-        else:
-            cv.polygon([(X + 0.5, Y + 7.5), (X + 1.5, Y + 3), (X + 4, Y + 1), (X + 6.5, Y + 2.5), (X + 7.5, Y + 7.5)],
-                       lambda px, py: th["leaf"] if (px - X) + (py - Y) < 8 else th["trunk"])
-            cv.set(X + 3, Y + 3, lighter(th["leaf"], 0.35))
-            if land.element in ("flame", "lightning") and _h(x, y, 3) == 0:
-                cv.set(X + 5, Y + 5, th["water"] if land.element == "flame" else (255, 230, 110))
-
-    def deep(x, y):
-        X, Y = x * T, y * T
-        cv.rect(X, Y, X + 7, Y + 7, th["deep"])
-        el = land.element
-        if el in ("wave", "breeze"):
-            if _h(x, y, 3) == 0:
-                cv.line(X + 1, Y + 3, X + 4, Y + 3, lighter(th["deep"], 0.45))
-            if el == "breeze" and _h(x, y, 5) == 0:
-                cv.ellipse(X + 4, Y + 5, 3.4, 1.6, (255, 255, 255))
-        elif el == "flame":
-            if _h(x, y, 4) == 0:
-                cv.line(X + 1, Y + 2, X + 5, Y + 6, th["water"])
-        elif el == "root":
-            cv.ellipse(X + 4, Y + 4, 3.8, 3.6, darker(th["leaf"], 0.8 if _h(x, y, 2) else 0.65))
-        else:
-            cv.polygon([(X, Y + 8), (X + 4, Y + 1), (X + 8, Y + 8)], darker(th["leaf"], 0.8))
-
-    for y in range(MH):
-        for x in range(MW):
-            ch = g[y][x]
-            X, Y = x * T, y * T
-            if ch == "#":
-                if near_ground(x, y):
-                    ground(x, y)
-                    block(x, y, th["block"])
-                else:
-                    deep(x, y)
-                continue
-            ground(x, y)
-            if ch == "=":
-                cv.rect(X, Y, X + 7, Y + 7, th["path"])
-                cv.set(X + _h(x, y, 7), Y + _h(y, x, 7), darker(th["path"], 0.86))
-                cv.set(X + _h(y, x + 3, 7), Y + _h(x, y + 9, 7), darker(th["path"], 0.9))
-            elif ch == '"':
-                for k in range(3):
-                    bx = X + 1 + k * 2.5 + _h(x + k, y, 2)
-                    by = Y + 3 + _h(x, y + k, 4)
-                    cv.line(bx, by + 3, bx - 1, by, th["habitat"])
-                    cv.line(bx, by + 3, bx + 1, by, darker(th["habitat"], 0.8))
-            elif ch == "~":
-                cv.rect(X, Y, X + 7, Y + 7, th["water"])
-                cv.line(X + 1, Y + 2 + _h(x, y, 4), X + 4, Y + 2 + _h(x, y, 4), lighter(th["water"], 0.5))
-            elif ch == "_":
-                cv.rect(X, Y, X + 7, Y + 7, th["floor"])
-                cv.rect(X, Y + 7, X + 7, Y + 7, darker(th["floor"], 0.88))
-                cv.rect(X + (3 if y % 2 else 7), Y, X + (3 if y % 2 else 7), Y + 7, darker(th["floor"], 0.88))
-            elif ch == "?":
-                if navigator:                               # a spotted way through
-                    cv.set(X + 2, Y + 2, darker(th["ground"], 0.75))
-                    cv.set(X + 5, Y + 5, darker(th["ground"], 0.75))
-                    cv.set(X + 3, Y + 6, darker(th["ground"], 0.8))
-                else:                                       # looks solid, almost
-                    block(x, y, th["block"])
-                    cv.set(X + 1, Y + 7, th["ground"])
-            elif ch == "S":
-                cv.rect(X + 3, Y + 4, X + 4, Y + 7, (110, 76, 48))
-                cv.rect(X + 1, Y + 1, X + 6, Y + 4, (200, 160, 110))
-                cv.rect(X + 2, Y + 2, X + 5, Y + 2, (110, 76, 48))
-            elif ch == "G":
-                cv.rect(X, Y, X + 7, Y + 7, th["path"])
-                cv.rect(X, Y, X + 1, Y + 7, (90, 60, 40))
-                cv.rect(X + 6, Y, X + 7, Y + 7, (90, 60, 40))
-                if not gate_open:
-                    cv.rect(X, Y + 2, X + 7, Y + 3, (200, 60, 50))
-                    cv.rect(X, Y + 5, X + 7, Y + 5, (160, 44, 40))
-
-    # the inn (2 x 2 tiles) and the market stall (2 x 1)
-    ix, iy = land.inn[0] * T, land.inn[1] * T
-    cv.rect(ix, iy + 6, ix + 15, iy + 15, (236, 222, 190))
-    cv.polygon([(ix - 1, iy + 7), (ix + 8, iy - 1), (ix + 17, iy + 7)], th["roof"])
-    cv.polygon([(ix + 1, iy + 7), (ix + 8, iy + 1), (ix + 15, iy + 7)], lighter(th["roof"], 0.25))
-    cv.rect(ix + 6, iy + 10, ix + 9, iy + 15, (96, 62, 40))
-    cv.set(ix + 9, iy + 13, (240, 200, 90))
-    cv.rect(ix + 2, iy + 9, ix + 4, iy + 11, (150, 210, 240))
-    cv.rect(ix + 11, iy + 9, ix + 13, iy + 11, (150, 210, 240))
-    mx, my = land.market[0] * T, land.market[1] * T
-    cv.rect(mx, my + 4, mx + 15, my + 7, (150, 104, 62))
-    for k in range(8):
-        cv.rect(mx + k * 2, my, mx + k * 2 + 1, my + 3, (220, 70, 60) if k % 2 else (245, 240, 230))
-    for k, c in enumerate(((120, 220, 130), (250, 200, 90), (150, 190, 250))):
-        cv.ellipse(mx + 3.5 + k * 4.5, my + 5, 1.3, 1.1, c)
-    return cv
+    return tiles.paint_land(land, S, navigator, gate_open, THEMES[land.element], MW, MH)
 
 
-def walker(look, direction, frame, S):
-    """A small trainer seen from above-ish, in one of four directions."""
-    cv = Canvas(8, 11, scale=S)
-    hair, coat, skin = tuple(look["hair"]), tuple(look["coat"]), tuple(look["skin"])
-    scarf = tuple(look["scarf"])
-    hat = tuple(look["hat"]) if look.get("hat") else None
-    # legs
-    step = frame % 2
-    for lx, up in ((2, step), (5, 1 - step)):
-        cv.rect(lx, 9, lx, 10 - up, (70, 44, 30))
-    # body and arms
-    cv.rect(2, 6, 5, 9, coat)
-    cv.rect(1, 6, 1, 8, darker(coat, 0.8))
-    cv.rect(6, 6, 6, 8, darker(coat, 0.8))
-    cv.rect(2, 6, 5, 6, scarf)
-    if direction == "down":
-        cv.rect(3, 7, 4, 9, (232, 234, 244))
-    # head
-    cv.ellipse(4, 3.3, 3.1, 3.0, skin)
-    if direction == "up":
-        cv.ellipse(4, 3.2, 3.2, 3.1, hair)
-    else:
-        cv.ellipse(4, 1.9, 3.2, 1.9, hair)
-        if direction == "down":
-            cv.set(2, 3, (30, 30, 50))
-            cv.set(5, 3, (30, 30, 50))
-            cv.rect(0.6, 2, 0.6, 4, hair)
-            cv.rect(7, 2, 7, 4, hair)
-        else:
-            ex = 5 if direction == "right" else 2
-            cv.set(ex, 3, (30, 30, 50))
-            bx = 1 if direction == "right" else 6
-            cv.rect(bx - (0 if direction == "right" else 0), 2, bx, 5, hair)
-    if hat:
-        cv.rect(1, 0, 6, 1, hat)
-        cv.rect(0, 1, 7, 1, darker(hat, 0.8))
-    cv.outline((20, 20, 36))
-    return Sprite.from_canvas(cv, (int(4 * S), int(11 * S)))
+walker = tiles.walker
+item_sprite = tiles.item_sprite
 
 
-def item_sprite(kind, S):
-    cv = Canvas(8, 8, scale=S)
-    if kind == "herb":
-        cv.line(4, 7, 4, 3, (60, 130, 70))
-        cv.ellipse(2.5, 3.5, 1.8, 1.2, (110, 200, 110))
-        cv.ellipse(5.5, 2.5, 1.8, 1.2, (140, 220, 120))
-        cv.set(4, 1, (250, 240, 150))
-    elif kind == "shard":
-        cv.polygon([(4, 0.5), (6.5, 4), (4, 7.5), (1.5, 4)], lambda x, y: (220, 120, 255) if x < 4 else (150, 60, 200))
-        cv.set(3, 3, (255, 230, 255))
-    else:
-        cv.rect(1, 3, 6, 7, (150, 100, 56))
-        cv.rect(1, 2, 6, 3, (190, 136, 76))
-        cv.rect(3, 4, 4, 5, (250, 210, 90))
-    cv.outline((30, 24, 30))
-    return Sprite.from_canvas(cv, (int(4 * S), int(8 * S)))
-
-
-# =========================================================================
-# The walking scene
-# =========================================================================
 class Wild:
     def __init__(self, x, y, mon):
         self.x, self.y, self.mon = x, y, mon
@@ -366,7 +192,7 @@ class World:
     """Walk around a land. `run()` returns as soon as something happens:
 
     ("wild", Wild)  ("lord",)  ("inn",)  ("market",)  ("sign",)  ("folk", i)
-    ("pickup", kind, (x, y))  ("gate",)  ("gate_shut",)  ("menu",)  ("warn",)  ("hidden",)
+    ("pickup", kind, (x, y))  ("gate",)  ("gate_west",)  ("gate_shut",)  ("menu",)  ("warn",)  ("hidden",)
     """
 
     def __init__(self, ui, land, look, pos, navigator=False, gate_open=False, lord_look=None, picked=()):
@@ -410,6 +236,8 @@ class World:
             return self.navigator
         if ch == "G":
             return self.gate_open
+        if ch == "W":
+            return True
         return False
 
     def thing_at(self, x, y):
@@ -503,6 +331,8 @@ class World:
             return ("pickup", self.land.pickups[pos], pos)
         if self.land.tile(*pos) == "G":
             return ("gate",)
+        if self.land.tile(*pos) == "W":
+            return ("gate_west",)
         if self.land.tile(*pos) == "?" and not self.hidden_told:
             self.hidden_told = True
             return ("hidden",)

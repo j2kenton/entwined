@@ -91,7 +91,9 @@ class Battle:
         self.panels = False
         self.cursor = {}                     # remembered menu position per creature
         self.after_send = None               # called with a creature when you send it in
-        self.team, self.foes, self.wild, self.bag, self.hero_element = [], [], False, None, None
+        self.team, self.foes, self.wild, self.bag, self.party = [], [], False, None, None
+        self.fought = []             # your creatures that have faced the foe now out
+        self.can_call = False        # may a companion be called in mid-fight?
         self.reset_stats()
 
     def reset_stats(self):
@@ -246,6 +248,7 @@ class Battle:
                                        int(fx.uniform(*life)), fx.choice(r), fx.choice(cols), g=g))
 
     def open(self, frames=16):
+        self.ui.battle = self
         self.reveal = 0.0
         self.wait(frames, lambda i: setattr(self, "reveal", (i + 1) / frames))
         self.reveal = 1.0
@@ -253,6 +256,7 @@ class Battle:
     def close(self, frames=14):
         self.wait(frames, lambda i: setattr(self, "reveal", 1 - (i + 1) / frames))
         self.reveal = 0.0
+        self.ui.battle = None
 
     # =====================================================================
     # Creatures coming and going
@@ -470,12 +474,15 @@ class Battle:
             if len(R.living(self.team)) > 1:
                 extra.append([(WHITE, "TEAM")])
                 extra_acts.append(("team",))
-            if self.bag is not None and any(self.bag.get(k, 0) for k in ("remedy", "tonic", "charm", "lure")):
+            if self.bag is not None and any(self.bag.get(k, 0) for k in ("remedy", "tonic", "charm")):
                 extra.append([(WHITE, "SATCHEL")])
                 extra_acts.append(("satchel",))
+            if self.can_call:
+                extra.append([(WHITE, "COMPANION")])
+                extra_acts.append(("call",))
             if self.wild:
-                extra.append([(WHITE if e.element == self.hero_element else DIM, "REACH OUT")])
-                extra_acts.append(("reach",))
+                extra.append([(DIM if self.lure_problem(e) else WHITE, "OFFER A LURE")])
+                extra_acts.append(("lure",))
                 extra.append([(WHITE, "RUN")])
                 extra_acts.append(("run",))
             if extra:
@@ -491,21 +498,18 @@ class Battle:
                     return [(GREY if p.can_use(a[1]) else DIM, "  " + self.describe(p, a[1], e))]
                 text = {"team": "Swap in another creature. It uses your turn.",
                         "satchel": "Use something from your satchel. It uses your turn.",
+                        "call": "Hand the fight to someone else in your party. It uses your turn.",
                         "run": "Slip away from this fight.",
-                        "reach": ("Offer your hand. The weaker it is, the more likely it is to trust you."
-                                  if e.element == self.hero_element else
-                                  "Only %s creatures will ever trust you." % R.el_name(self.hero_element))}[a[0]]
+                        "lure": self.lure_problem(e) or
+                        "Hold out a lure. The weaker it is, and the tastier the lure, the likelier it joins."}[a[0]]
                 return [(GREY, "  " + text)]
 
             def blocked(r, c):
                 a = act_at(r, c)
                 if a[0] == "move" and not p.can_use(a[1]):
                     return "%s has no uses left!" % a[1].name
-                if a[0] == "reach":
-                    if e.element != self.hero_element:
-                        return "It turns away. Only %s creatures will ever trust you." % R.el_name(self.hero_element)
-                    if len(self.team) >= R.TEAM_MAX:
-                        return "You can only keep %d creatures. Any more and they'd turn on each other." % R.TEAM_MAX
+                if a[0] == "lure":
+                    return self.lure_problem(e)
                 return None
 
             start = self.cursor.get(id(p), (0, 0))
@@ -531,16 +535,55 @@ class Battle:
                 key = self.choose_item()
                 if key:
                     return ("item", key)
+            elif a[0] == "lure":
+                key = self.choose_lure(e)
+                if key:
+                    return ("lure", key)
             else:
                 return a
+
+    # ----- befriending ----------------------------------------------------
+    def keeper(self, wild):
+        """Who in your party could take this wild creature in: the trainer of its nature."""
+        return next((m for m in (self.party or []) if m.element == wild.element), None)
+
+    def lure_problem(self, wild):
+        """Why a lure can't be offered right now (None if it can)."""
+        el = R.el_name(wild.element)
+        who = self.keeper(wild)
+        if who is None:
+            return "It won't come near. Only a %smaster could win its trust." % el
+        if len(who.team) >= R.TEAM_MAX:
+            return "%s already %s %d creatures. Any more and they'd turn on each other." % (
+                "You" if who.is_hero else who.name, "keep" if who.is_hero else "keeps", R.TEAM_MAX)
+        if not R.lures_for(wild.element, self.bag or {}):
+            return "You've no %s lure to offer. They're sold where %s creatures live." % (el, el)
+        return None
+
+    def choose_lure(self, wild):
+        keys = R.lures_for(wild.element, self.bag)
+        if len(keys) == 1:
+            return keys[0]
+        opts = [[(WHITE, R.ITEMS[k]["name"].ljust(20)), (GREY, "x%d" % self.bag[k])] for k in keys] + [[(GREY, "Back")]]
+
+        def desc(i):
+            if i >= len(keys):
+                return [(GREY, "  Go back.")]
+            odds = R.bond_chance(wild, R.LURES[keys[i]][2])
+            word = "A long shot" if odds < 0.25 else "It might work" if odds < 0.5 else \
+                "A fair chance" if odds < 0.75 else "It looks ready"
+            return [(GREY, "  %s, as weak as it is now." % word)]
+        i = self.ui.menu(self.draw, [(GREY, "  Which lure?")], opts, cols=2, desc=desc, tag=("lure", keys))
+        return keys[i] if i < len(keys) else None
 
     def team_cells(self, m):
         ok = m.alive
         return [(WHITE if ok else DIM, m.name.ljust(11)), (GREY if ok else DIM, ("L%d" % m.level).ljust(5)),
                 ((120, 220, 130) if ok else DIM, ("%d/%d" % (m.hp, m.max_hp) if ok else "fainted").ljust(9))]
 
-    def choose_teammate(self, forced):
-        """Pick a creature from your team. Returns it, or None for "back"."""
+    def choose_teammate(self, forced, stay=False):
+        """Pick a creature from your team. Returns it, or None for "back".
+        stay: the one already out there can be chosen too (to leave things as they are)."""
         team = self.team
         e = self.enemy.mon
         opts = [self.team_cells(m) for m in team]
@@ -552,7 +595,7 @@ class Battle:
                 return None
             if not team[i].alive:
                 return "%s has fainted." % team[i].name
-            if team[i] is self.player.mon and self.player.on:
+            if team[i] is self.player.mon and self.player.on and not stay:
                 return "%s is already out there." % team[i].name
             return None
 
@@ -568,7 +611,7 @@ class Battle:
 
     def choose_item(self):
         bag = self.bag
-        keys = [k for k in ("remedy", "tonic", "charm", "lure") if bag.get(k, 0)]
+        keys = [k for k in ("remedy", "tonic", "charm") if bag.get(k, 0)]
         p, e = self.player.mon, self.enemy.mon
         opts = [[(WHITE, R.ITEMS[k]["name"].ljust(10)), (GREY, "x%d" % bag[k])] for k in keys] + [[(GREY, "Back")]]
 
@@ -576,10 +619,6 @@ class Battle:
             if i >= len(keys):
                 return None
             k = keys[i]
-            if k == "lure":
-                if not self.wild or e.element != self.hero_element:
-                    return "A lure only tempts a wild creature of your own nature."
-                return "It has already caught the scent." if e.lured else None
             if k == "remedy" and p.hp >= p.max_hp:
                 return "%s is already at full health." % p.name
             if k == "tonic" and all(p.pp[m.key] >= m.max_pp for m in p.moves):
@@ -652,11 +691,10 @@ class Battle:
                      else "%s gets in %s's eyes! Its accuracy fell!" % (mv.what or "It", target.name))
 
     def give_xp(self, beaten):
-        """Share experience for a beaten creature among your team."""
+        """Experience for a beaten creature: to each of yours that faced it and is still standing."""
         gain = R.xp_for(beaten, trainer=not self.wild)
-        for m in R.living(self.team):
-            share = gain if m is self.player.mon else gain // 2
-            for kind, what in m.gain_xp(share):
+        for m in [m for m in self.fought if m.alive]:
+            for kind, what in m.gain_xp(gain):
                 if kind == "level":
                     if m is self.player.mon:
                         self.land(self.player)
@@ -665,27 +703,61 @@ class Battle:
                 else:
                     self.say("%s learned %s!" % (m.name, what.name), hold=14)
 
-    def fight(self, team, foes, controller=None, foe_owner=None, wild=False, bag=None,
-              hero_element=None, xp=False):
+    def enter(self, mon, text):
+        """Send one of yours in, and note that it has faced the foe now out."""
+        self.send_player(mon, text)
+        if mon not in self.fought:
+            self.fought.append(mon)
+
+    def fight(self, team, foes, controller=None, foe_owner=None, wild=False, bag=None, party=None,
+              xp=False, stop_on_faint=False, can_call=False, foe_first=False, pick_fresh=False):
         """Fight `foes` with `team` until one side has nobody left.
 
-        controller   None for your own team; an ally's (NAME, colour) when
-                     they fight and you advise
-        foe_owner    the other trainer's name (None for a wild creature)
-        Returns "win", "lose", "ran" or "bonded".
+        controller     None for your own team; an ally's (NAME, colour) when
+                       they fight and you advise
+        foe_owner      the other trainer's name (None for a wild creature)
+        party          everyone travelling with you (decides who a wild creature could join)
+        stop_on_faint  hand back as soon as one of yours faints, so someone else can be chosen
+        can_call       offer "COMPANION": hand the fight to another trainer
+        foe_first      the creature you send in takes a blow before it can act
+                       (it came in for someone else mid-fight: the swap used your turn)
+        pick_fresh     when the foe is newly out and one of yours is still standing there,
+                       ask which of yours should meet it (changing costs nothing)
+        Returns "win", "lose", "ran", "bonded", "fainted" or "call".
         """
-        self.team, self.foes, self.wild, self.bag = team, foes, wild, bag
-        self.hero_element = hero_element
+        self.team, self.foes, self.wild, self.bag, self.party = team, foes, wild, bag, party
+        self.can_call = can_call and any(m.standing for m in (party or []) if m.team is not team)
         go = "Go, %s!" if controller is None else controller[0].title() + " sends in %s!"
+        new_foe = False
         if not (self.enemy.on and self.enemy.mon in foes and self.enemy.mon.alive):
             nxt = R.living(foes)[0]
+            self.fought = []
+            new_foe = True
             self.send_enemy(nxt, ("A wild %s appears!" % nxt.name) if wild
                             else "%s sends out %s!" % (foe_owner, nxt.name))
         if not (self.player.on and self.player.mon in team and self.player.mon.alive):
             if self.player.on:
                 self.recall_player("%s, come back!" % self.player.mon.name)
             first = R.living(team)[0]
-            self.send_player(first, go % first.name)
+            if stop_on_faint and len(R.living(team)) > 1:
+                first = self.choose_teammate(forced=True)
+            self.enter(first, go % first.name)
+            if foe_first:
+                p, e = self.player.mon, self.enemy.mon
+                self.act(R.use_move(e, p, R.choose_ai(e, p, self.rng), self.rng, self.weather))
+                e.guard = False
+                if not p.alive:
+                    self.stats["fainted"] += 1
+                    self.faint(self.player)
+                    self.say("%s can't battle any more!" % p.name)
+                    return "fainted" if R.living(team) else "lose"
+        elif pick_fresh and new_foe and len(R.living(team)) > 1:
+            first = self.choose_teammate(forced=True, stay=True)
+            if first is not self.player.mon:
+                self.recall_player("%s, come back!" % self.player.mon.name)
+                self.enter(first, go % first.name)
+        if self.player.mon not in self.fought:
+            self.fought.append(self.player.mon)
         while True:
             p, e = self.player.mon, self.enemy.mon
             self.stats["turns"] += 1
@@ -695,33 +767,35 @@ class Battle:
             if action[0] == "run":
                 self.say("You slip away.", hold=10)
                 return "ran"
+            if action[0] == "call":
+                return "call"
             if action[0] == "move":
                 order = R.turn_order(p, action[1], e, em)
             elif action[0] == "switch":
                 self.recall_player("%s, come back!" % p.name)
-                self.send_player(action[1], go % action[1].name)
+                self.enter(action[1], go % action[1].name)
                 p, e = self.player.mon, self.enemy.mon
                 order = [(e, em, p)]
             elif action[0] == "item":
                 key = action[1]
                 self.bag[key] -= 1
-                if key == "lure":
-                    e.lured = True
-                    self.anim_cloud(self.player, self.enemy, BOND_SPARKS)
-                    self.say("%s sniffs the air and edges closer." % e.name)
-                else:
-                    msg = R.use_item(key, p)
-                    self.anim_rise(self.player, sparks(p.element) if key == "charm" else HEAL_SPARKS, flash=key == "charm")
-                    self.land(self.player)
-                    self.say(msg or "Nothing happened.")
-            elif action[0] == "reach":
-                self.say("You hold out a hand to %s..." % e.name, hold=10)
+                msg = R.use_item(key, p)
+                self.anim_rise(self.player, sparks(p.element) if key == "charm" else HEAL_SPARKS, flash=key == "charm")
+                self.land(self.player)
+                self.say(msg or "Nothing happened.")
+            elif action[0] == "lure":
+                key = action[1]
+                who = self.keeper(e)
+                self.bag[key] -= 1
+                self.say("%s out a lure to %s..." % ("You hold" if who.is_hero else who.name + " holds", e.name), hold=10)
+                self.anim_cloud(self.player, self.enemy, BOND_SPARKS)
                 self.wait(10)
-                if self.rng.random() < R.bond_chance(e):
+                if self.rng.random() < R.bond_chance(e, R.LURES[key][2]):
                     self.anim_rise(self.enemy, BOND_SPARKS, flash=True, frames=34)
-                    self.say("%s nuzzles your palm. It trusts you!" % e.name, wait=True)
+                    self.say("%s eats from %s hand. It trusts %s!" % (
+                        e.name, "your" if who.is_hero else who.name + "'s", "you" if who.is_hero else who.name), wait=True)
                     return "bonded"
-                self.say("%s shies away." % e.name)
+                self.say("%s snatches the lure and backs away." % e.name)
             for user, mv, target in order:
                 if user.alive and target.alive:
                     self.act(R.use_move(user, target, mv, self.rng, self.weather))
@@ -735,6 +809,7 @@ class Battle:
                 left = R.living(foes)
                 if not left:
                     return "win"
+                self.fought = [p] if p.alive else []
                 self.send_enemy(left[0], "%s sends out %s!" % (foe_owner, left[0].name))
             if not p.alive:
                 self.stats["fainted"] += 1
@@ -742,5 +817,7 @@ class Battle:
                 self.say("%s can't battle any more!" % p.name)
                 if not R.living(team):
                     return "lose"
+                if stop_on_faint:
+                    return "fainted"
                 nxt = self.choose_teammate(forced=True)
-                self.send_player(nxt, go % nxt.name)
+                self.enter(nxt, go % nxt.name)

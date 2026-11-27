@@ -104,6 +104,9 @@ class UI:
         self.skipped = 0
         self.confirm_quit = None          # (question, note, stay, leave): ask before Esc leaves
         self.want_quit = False
+        self.tester = None                # `play --test`: a function () -> [(label, action)]
+        self.want_test = False
+        self.battle = None                # the battle on screen, if there is one
 
     @property
     def S(self):
@@ -119,6 +122,9 @@ class UI:
                 raise Quit()
             if k in ("bigger", "smaller"):
                 self.display.adjust += 1 if k == "bigger" else -1
+                continue
+            if k == "tester":
+                self.want_test = bool(self.tester) and not self.headless
                 continue
             self.pending.append(k)
 
@@ -166,6 +172,9 @@ class UI:
         if self.want_quit:
             self.want_quit = False
             self.ask_quit(cv, cols, rows_)
+        if self.want_test:
+            self.want_test = False
+            self.ask_tester(cv, cols, rows_)
         self.next_t += 1 / self.FPS
         delay = self.next_t - time.perf_counter()
         if delay > 0:
@@ -193,6 +202,40 @@ class UI:
                     return
                 elif k == "enter":
                     raise Quit()
+            time.sleep(0.04)
+
+    def ask_tester(self, cv, cols, rows_):
+        """T was pressed in test mode: dials for whoever is trying the game out.
+        Up/Down choose a line, Left lowers it, Right raises it. T or Esc goes back.
+        self.tester() gives the lines: (label, current value, lower, raise)."""
+        opts = self.tester()
+        sel = 0
+        while True:
+            blink = int(time.perf_counter() * 4) % 2 == 0
+            rows = [[(GOLD, "  Tester's dials"),
+                     (GREY, "     Up/Down choose.  Left lowers, Right raises.  T or Esc goes back.")]]
+            top = max(0, min(sel - 1, len(opts) - 4))
+            for i in range(top, min(len(opts), top + 4)):
+                label, value = opts[i][0], opts[i][1]
+                rows.append([(GOLD, "  " + ("\u25b6 " if (i == sel and blink) else "  ")),
+                             (GOLD if i == sel else WHITE, label.ljust(20)),
+                             (GOLD if i == sel else GREY, "\u25c0 " if i == sel else "  "),
+                             (WHITE, value),
+                             (GOLD, " \u25b6" if i == sel else "")])
+            self.display.present(cv, box_lines(rows), cols, rows_)
+            for k in self.keys.poll():
+                if k == "up":
+                    sel = (sel - 1) % len(opts)
+                elif k == "down":
+                    sel = (sel + 1) % len(opts)
+                elif k in ("quit", "tester"):
+                    self.pending.clear()
+                    self.next_t = time.perf_counter()
+                    return
+                elif k in ("left", "right", "enter"):
+                    opts[sel][2 if k == "left" else 3]()
+                    opts = self.tester()
+                    sel = min(sel, len(opts) - 1)
             time.sleep(0.04)
 
     # ----- building blocks ----------------------------------------------

@@ -1,11 +1,13 @@
 """Balance check: simulate the campaign's battles for every hero.
 
     python -m game.sim            (from the repo root)
+    python -m game.sim 300        (fewer or more runs per number)
 
-It assumes a player who arrives at each Lord with the team in tuning.json's
-"expected" (levels and team sizes), plays carefully, and uses no items.
-Prints the win rate of each Lord fight (alone, and with the best ally stepping
-in after a loss), and how often the party then clears the Citadel.
+The Citadel's creatures are at fixed levels, so how hard it is depends on how
+well you've trained. This prints, for parties of different strengths, how
+often each land's Master is beaten and how often the Citadel is cleared in one climb.
+It assumes careful play, the healing touches used between floors, and no
+satchel items.
 """
 import random
 import sys
@@ -48,74 +50,97 @@ def lord_team(el, i):
 
 
 def journey(hero, n, rng):
+    """Each Lord: win rate with your own team, and with whichever team suits best."""
     order = R.land_order(hero)
-    solo, with_ally = [], []
+    solo, best = [], []
     for i, lord_el in enumerate(order):
-        w_solo = w_ally = 0
+        w_solo = w_best = 0
+        # companions so far, each grown to three creatures a little behind yours
+        allies = {order[a]: T["expected"]["levels"][i] - 2 for a in range(i)}
         for _ in range(n):
             if team_fight(hero_team(hero, i), lord_team(lord_el, i), rng):
                 w_solo += 1
-                w_ally += 1
-            elif i > 0:
-                k = max(range(i), key=lambda a: R.mult(order[a], lord_el) / R.mult(lord_el, order[a]))
-                w_ally += team_fight(lord_team(order[k], k), lord_team(lord_el, i), rng)
+                w_best += 1
+            elif allies:
+                el = max(allies, key=lambda a: R.mult(a, lord_el) / R.mult(lord_el, a))
+                w_best += team_fight(R.make_team(el, allies[el], 3), lord_team(lord_el, i), rng)
         solo.append(w_solo / n)
-        with_ally.append(w_ally / n)
-    return order, solo, with_ally
+        best.append(w_best / n)
+    return order, solo, best
 
 
-def pick(party, foe, smart=True):
+# =========================================================================
+# The Citadel
+# =========================================================================
+def make_party(hero, level, size):
+    """A trained party: your team at `level`, each companion's a level behind."""
+    party = {hero: R.make_team(hero, level - 1, size)}
+    for el in R.land_order(hero):
+        party[el] = R.make_team(el, level - 2, size)
+    return party
+
+
+def pick(party, foe):
     """Whose team goes in against `foe`: the best match-up among those still standing."""
     alive = [el for el, team in party.items() if R.living(team)]
     if not alive:
         return None
 
     def score(el):
-        target = foe.best_form(el) if (foe.forms and smart) else foe.element
+        target = foe.best_form(el) if foe.forms else foe.element
         fit = sum(m.ratio for m in party[el]) / len(party[el])
         return R.mult(el, target) / R.mult(target, el) * (0.35 + 0.65 * fit)
     return max(alive, key=score)
 
 
-def fight_on(party, first, foes, rng, smart=True):
-    el = first
-    while True:
-        if team_fight(party[el], foes, rng):
-            return True
-        el = pick(party, R.living(foes)[0], smart)
-        if el is None:
-            return False
+def face(party, foe, rng, first=None):
+    """One enemy creature. `first`: the trainer who must meet it before anyone else can."""
+    el = first if (first and R.living(party[first])) else pick(party, foe)
+    while el is not None and foe.alive:
+        p = R.living(party[el])[0]
+        if foe.forms:
+            foe.set_form(foe.best_form(p.element))
+        duel(p, foe, rng)
+        if foe.alive:
+            el = pick(party, foe)
+    return not foe.alive
 
 
-def citadel(hero, rng, smart=True):
-    """Returns (cleared, floor reached, trainers still standing)."""
+def breather(party, touches):
+    """Between floors: each trainer mends their most hurt creatures while their touches last."""
+    amount = T["heal"]["amount"]
+    for el, team in party.items():
+        while touches[el] > 0:
+            hurt = [m for m in team if m.alive and m.ratio <= 1 - amount]
+            if not hurt:
+                break
+            m = min(hurt, key=lambda m: m.ratio)
+            m.hp = min(m.max_hp, m.hp + int(round(m.max_hp * amount)))
+            touches[el] -= 1
+
+
+def citadel(hero, rng, level=None, size=4):
+    """One climb. Returns (cleared, floor reached 1-6, creatures still standing)."""
     c = T["citadel"]
-    order = R.land_order(hero)
-    party = {hero: hero_team(hero, 4)}
-    top = max(m.level for m in party[hero])
-    for k, el in enumerate(order):
-        party[el] = lord_team(el, k)
-        for m in party[el]:
-            m.set_level(max(m.level, top))
-            m.restore()
-    for k, ally in enumerate(order):
-        foes = R.make_team(ally, c["nemesis_level"], c["nemesis_size"], "shadow")
-        first = ally if R.living(party[ally]) else pick(party, foes[0], smart)
-        if first is None or not fight_on(party, first, foes, rng, smart):
+    party = make_party(hero, level or c["nemesis_level"], size)
+    touches = {el: T["heal"]["uses"] for el in party}
+    for k, ally in enumerate(R.land_order(hero)):
+        for foe in R.make_team(ally, c["nemesis_level"], c["nemesis_sizes"][k], "shadow"):
+            if not face(party, foe, rng, first=ally):
+                return False, k + 1, 0
+        if not face(party, R.make_mon(R.beater_of(ally), "shadow", c["sixth_level"]), rng):
             return False, k + 1, 0
-        sixth = R.make_mon(R.beater_of(ally), "shadow", c["sixth_level"])
-        who = pick(party, sixth, smart)
-        if who is None or not fight_on(party, who, [sixth], rng, smart):
-            return False, k + 1, 0
-    if not R.living(party[hero]):
+        breather(party, touches)
+    for foe in R.make_team(hero, c["final_level"], c["final_size"], "shadow"):
+        if not face(party, foe, rng, first=hero):
+            return False, 6, 0
+    if not face(party, R.make_hybrid(hero, c["hybrid_level"]), rng):
         return False, 6, 0
-    if not team_fight(party[hero], R.make_team(hero, c["final_level"], c["final_size"], "shadow"), rng):
-        return False, 6, 0
-    hybrid = R.make_hybrid(hero, c["hybrid_level"])
-    who = pick(party, hybrid, smart)
-    if who is None or not fight_on(party, who, [hybrid], rng, smart):
-        return False, 6, 0
-    return True, 7, sum(1 for t in party.values() if R.living(t))
+    return True, 7, sum(len(R.living(t)) for t in party.values())
+
+
+def citadel_rate(n, rng, level, size):
+    return sum(citadel(hero, rng, level, size)[0] for hero in R.ORDER for _ in range(n)) / (6 * n)
 
 
 def trial(hero, rng):
@@ -125,35 +150,49 @@ def trial(hero, rng):
     lord_won = team_fight([R.make_mon(hero, level=c["hero_level"])], [R.make_mon(order[0], level=c["lord_level"])], rng)
     party = {el: [R.make_mon(el, level=c["hero_level"])] for el in [hero] + order}
     ally = order[0]
-    ok = fight_on(party, ally, [R.make_mon(ally, "shadow", c["nemesis_level"])], rng)
-    sixth = R.make_mon(R.beater_of(ally), "shadow", c["sixth_level"])
-    ok = ok and fight_on(party, pick(party, sixth), [sixth], rng)
-    ok = ok and bool(R.living(party[hero])) and team_fight(party[hero], [R.make_mon(hero, "shadow", c["final_level"])], rng)
-    if ok:
-        hybrid = R.make_hybrid(hero, c["hybrid_level"])
-        ok = fight_on(party, pick(party, hybrid), [hybrid], rng)
+    ok = face(party, R.make_mon(ally, "shadow", c["nemesis_level"] + 1), rng, first=ally)
+    ok = ok and face(party, R.make_mon(R.beater_of(ally), "shadow", c["sixth_level"]), rng)
+    ok = ok and face(party, R.make_mon(hero, "shadow", c["final_level"] + 1), rng, first=hero)
+    ok = ok and face(party, R.make_hybrid(hero, c["hybrid_level"]), rng)
     return lord_won, ok
 
 
-def main(n=600):
+def main(n=300):
     rng = random.Random(7)
-    print("LORD FIGHTS  (win % alone / win % with the best ally stepping in after a loss)")
+    c = T["citadel"]
+    print("THE FIVE MASTERS  (win % with your own team / with whichever team suits best)")
+    print("  They have %s creatures at levels %s; you arrive with %s at levels %s."
+          % (T["lords"]["sizes"], T["lords"]["levels"], T["expected"]["team"], T["expected"]["levels"]))
     for hero in R.ORDER:
-        order, solo, ally = journey(hero, n, rng)
-        cells = ["%-9s %3.0f/%3.0f" % (R.el_name(o), s * 100, a * 100) for o, s, a in zip(order, solo, ally)]
+        order, solo, best = journey(hero, n, rng)
+        cells = ["%-9s %3.0f/%3.0f" % (R.el_name(o), s * 100, a * 100) for o, s, a in zip(order, solo, best)]
         print("  %-10s %s" % (R.el_name(hero), "   ".join(cells)))
-    print("\nCITADEL  (clear %, trainers still standing, % of runs lost on floors 1-5 and the top)")
+
+    print()
+    print("CITADEL  (chance of clearing it in one climb, by how well the party is trained)")
+    print("  Its creatures: floors %d, the one more %d, your nemesis %d, the hybrid %d."
+          % (c["nemesis_level"], c["sixth_level"], c["final_level"], c["hybrid_level"]))
+    sizes = (3, 4, 5)
+    print("  your best level   " + "   ".join("%d creatures each" % s for s in sizes))
+    for level in range(c["nemesis_level"] - 3, min(T["level_cap"], c["nemesis_level"] + 3) + 1):
+        print("  %10d        " % level + "   ".join("%14.0f%%  " % (citadel_rate(n // 6 or 1, rng, level, s) * 100) for s in sizes))
+
+    print()
+    print("  By hero, for a party at level %d with 4 creatures each (clear %%, and where the rest fell: floors 1-5, top)"
+          % c["nemesis_level"])
     for hero in R.ORDER:
-        res = [citadel(hero, rng) for _ in range(n)]
-        wins = [r for r in res if r[0]]
+        res = [citadel(hero, rng, c["nemesis_level"], 4) for _ in range(n)]
         ends = [sum(1 for r in res if not r[0] and r[1] == f) * 100 // n for f in range(1, 7)]
-        print("  %-10s %3.0f    left %.1f    %s" % (R.el_name(hero), len(wins) * 100 / n,
-                                                  sum(r[2] for r in wins) / max(1, len(wins)), ends))
-    print("\nQUICK TASTE  (% who beat the Lord first time, % who clear the Citadel part first time)")
+        wins = [r for r in res if r[0]]
+        print("  %-10s %3.0f   left standing %4.1f   %s" % (
+            R.el_name(hero), len(wins) * 100 / n, sum(r[2] for r in wins) / max(1, len(wins)), ends))
+
+    print()
+    print("QUICK TASTE  (% who beat the Master first time, % who clear the Citadel part first time)")
     for hero in R.ORDER:
         res = [trial(hero, rng) for _ in range(n)]
         print("  %-10s %3.0f   %3.0f" % (R.el_name(hero), sum(r[0] for r in res) * 100 / n, sum(r[1] for r in res) * 100 / n))
 
 
 if __name__ == "__main__":
-    main(int(sys.argv[1]) if len(sys.argv) > 1 else 600)
+    main(int(sys.argv[1]) if len(sys.argv) > 1 else 300)
